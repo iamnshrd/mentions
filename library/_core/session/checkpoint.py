@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from library.config import get_default_store
-from library._core.state_store import StateStore, KEY_CHECKPOINTS
+from library.state_store import StateStore, KEY_CHECKPOINTS
 from library.utils import now_iso
 
 

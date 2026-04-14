@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 
-from library._core.state_store import StateStore
+from library.state_store import StateStore
 from library.config import get_default_store
 
 log = logging.getLogger('mentions')

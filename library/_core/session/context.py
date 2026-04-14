@@ -6,7 +6,7 @@ linking tracked markets to analysis routes and source effectiveness.
 from __future__ import annotations
 
 from library.config import get_default_store
-from library._core.state_store import (
+from library.state_store import (
     StateStore, KEY_CONTINUITY, KEY_SESSION_STATE,
     KEY_EFFECTIVENESS, KEY_CONTEXT_GRAPH,
 )

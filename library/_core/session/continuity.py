@@ -5,7 +5,7 @@ Mirrors Jordan's session/continuity.py, adapted for market context.
 from __future__ import annotations
 
 from library.config import get_default_store
-from library._core.state_store import (
+from library.state_store import (
     StateStore, KEY_CONTINUITY, KEY_CONTINUITY_SUMMARY,
 )
 from library.utils import now_iso

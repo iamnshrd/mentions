@@ -17,7 +17,7 @@ from library._core.session.continuity import read as read_continuity, load as lo
 from library._core.session.state import build_user_profile, update_session
 from library._core.session.checkpoint import log as log_checkpoint
 from library._core.session.context import assemble as assemble_context
-from library._core.state_store import StateStore
+from library.state_store import StateStore
 from library.config import get_default_store
 from library.utils import timing_context, get_threshold
 

@@ -9,7 +9,7 @@ import logging
 
 from library._core.runtime.routes import infer_route, route_voice_bias
 from library.config import MARKET_CATEGORIES, get_default_store
-from library._core.state_store import StateStore
+from library.state_store import StateStore
 from library.utils import load_json
 
 log = logging.getLogger('mentions')
