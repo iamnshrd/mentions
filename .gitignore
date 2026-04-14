@@ -1,0 +1,50 @@
+# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# DB (generated)
+library/mentions_data.db
+library/mentions_data.db-wal
+library/mentions_data.db-shm
+
+# Build artefacts
+library/ingest_report.json
+library/eval_report.json
+library/runtime_audit_report.json
+library/ingest_jobs.jsonl
+
+# Staging directories
+library/processing/
+library/processed/
+library/failed/
+
+# Workspace state (per-user runtime)
+workspace/
+
+# Dashboard output (generated)
+dashboard/
+
+# Venv
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo

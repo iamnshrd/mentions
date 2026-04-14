@@ -1,0 +1,33 @@
+{
+  "name": "mentions",
+  "version": "0.1.0",
+  "emoji": "📊",
+  "category": "analytics",
+  "description": "Kalshi prediction market analyst agent for OpenClaw",
+  "personality": "mentions",
+  "telegram_separate": true,
+  "autonomous": true,
+  "schedule": "configurable via cron",
+  "tags": [
+    "kalshi",
+    "prediction-markets",
+    "analytics",
+    "quantitative",
+    "forecasting",
+    "markets",
+    "signal-detection",
+    "data-driven"
+  ],
+  "difficulty": "intermediate",
+  "one_liner": "Rigorous, data-driven analysis of Kalshi prediction markets with multi-source synthesis and explicit reasoning chains.",
+  "best_for": [
+    "prediction market analysis",
+    "Kalshi market monitoring",
+    "price signal detection",
+    "speaker pattern research",
+    "autonomous market scanning",
+    "structured probability assessment",
+    "multi-source synthesis",
+    "dashboard data generation"
+  ]
+}
