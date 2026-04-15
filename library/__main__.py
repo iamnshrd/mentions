@@ -3,6 +3,7 @@
 
 Usage examples:
     python -m library run "what's moving on Kalshi today?"
+    python -m library run "https://www.kalshi.com/markets/kxinfantinomention/kxinfantinomention-26apr15"
     python -m library prompt "bitcoin price market"
     python -m library frame "fed rate decision market"
     python -m library fetch auto
@@ -25,6 +26,7 @@ from library.logging_config import setup as setup_logging
 
 def cmd_run(args):
     from library._core.runtime.orchestrator import orchestrate
+    # orchestrate() auto-detects Kalshi URLs and routes accordingly
     print(json.dumps(orchestrate(args.query, user_id=args.user_id),
                      ensure_ascii=False, indent=2))
 
@@ -136,8 +138,14 @@ def build_parser():
                         help='User ID for multi-tenant state isolation')
     sub = parser.add_subparsers(dest='command')
 
-    p_run = sub.add_parser('run', help='Orchestrate a full analysis response')
-    p_run.add_argument('query')
+    p_run = sub.add_parser(
+        'run',
+        help='Orchestrate a full analysis response (auto-detects Kalshi URLs)',
+    )
+    p_run.add_argument(
+        'query',
+        help='Market query or Kalshi URL (https://www.kalshi.com/markets/...)',
+    )
     p_run.set_defaults(func=cmd_run)
 
     p_prompt = sub.add_parser('prompt', help='Build LLM prompt bundle for OpenClaw')

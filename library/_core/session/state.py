@@ -5,7 +5,7 @@ Mirrors Jordan's session/state.py, adapted for market analysis context.
 from __future__ import annotations
 
 from library.config import get_default_store
-from library.state_store import (
+from library._core.state_store import (
     StateStore, KEY_SESSION_STATE, KEY_USER_STATE, KEY_CONTINUITY,
 )
 from library.utils import now_iso

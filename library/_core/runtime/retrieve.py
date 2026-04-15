@@ -142,6 +142,68 @@ def build_retrieval_bundle(query: str, frame: dict) -> dict:
     }
 
 
+@timed('retrieve_by_ticker')
+def retrieve_by_ticker(ticker: str, speaker: str = '') -> dict:
+    """Directed retrieval for a known ticker + optional speaker name.
+
+    Unlike ``retrieve_market_data()``, this always fetches market data and
+    forces transcript search for the speaker when provided.
+
+    Returns a dict compatible with ``build_retrieval_bundle()`` output.
+    """
+    from library._core.fetch.kalshi import get_market, get_history
+    from library._core.fetch.news import fetch_news
+
+    ticker = ticker.upper()
+
+    # ── Market data ────────────────────────────────────────────────────────
+    market_data: dict = {}
+    history: list = []
+    try:
+        market_data = get_market(ticker) or {}
+        days = get_threshold('history_days_default', 30)
+        history = get_history(ticker, days=days) or []
+    except Exception as exc:
+        log.warning('Kalshi fetch failed for ticker %s: %s', ticker, exc)
+
+    # ── Transcripts (forced if speaker given) ──────────────────────────────
+    transcripts: list = []
+    search_term = speaker or ticker
+    if search_term:
+        try:
+            from library._core.kb.query import query_transcripts
+            fts = fts_query(search_term)
+            if fts:
+                limit = get_threshold('fts_chunk_limit', 8)
+                transcripts = query_transcripts(fts, limit=limit,
+                                                speaker=speaker or None)
+        except Exception as exc:
+            log.debug('Transcript fetch failed: %s', exc)
+
+    # ── News ───────────────────────────────────────────────────────────────
+    news: list = []
+    try:
+        query_hint = speaker or market_data.get('title', ticker)
+        news = fetch_news(query_hint, limit=get_threshold('news_fetch_limit', 5))
+    except Exception as exc:
+        log.debug('News fetch failed: %s', exc)
+
+    market = {
+        'ticker':          ticker,
+        'market_data':     market_data,
+        'history':         history,
+        'cached_analysis': [],
+    }
+
+    return {
+        'market':      market,
+        'transcripts': transcripts,
+        'news':        news,
+        'has_data':    bool(market_data or transcripts or news),
+        'sources_used': _sources_used(market, transcripts, news),
+    }
+
+
 def _sources_used(market: dict, transcripts: list, news: list) -> list[str]:
     sources = []
     if market.get('market_data'):

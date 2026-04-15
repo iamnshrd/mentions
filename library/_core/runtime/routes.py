@@ -76,6 +76,16 @@ ROUTES: dict[str, dict] = {
         ],
         'voice_bias': 'analytical',
     },
+    'speaker-event': {
+        'keywords': [
+            'mention', 'will mention', 'will say', 'will address',
+            'press conference', 'presser', 'speech', 'interview',
+            'will speak', 'statement', 'briefing', 'testimony',
+            'conference', 'summit', 'forum', 'panel',
+            'infantino', 'powell', 'trump', 'biden', 'lagarde',
+        ],
+        'voice_bias': 'deep',
+    },
     'general-market': {
         'keywords': [
             'market', 'рынок', 'kalshi', 'prediction', 'contract', 'ticker',
