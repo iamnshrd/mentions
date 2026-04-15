@@ -1,77 +1,121 @@
-# Mentions — Kalshi Prediction Market Analyst
+# Mentions Runtime + OpenClaw Gateway
 
-A rigorous, data-driven prediction market analyst agent for OpenClaw.
+`Mentions` в этом репо теперь живёт как локальный runtime (`mentions_core`) и отдельный agent pack, который предполагается монтировать за официальным OpenClaw Gateway.
+По рабочему паттерну это ближе к `jordan`: OpenClaw снаружи, доменная логика внутри репо, отдельный OpenClaw workspace в `openclaw-workspace/`.
 
-Designed for:
-- Real-time analysis of Kalshi prediction market movements
-- Multi-source synthesis: live data + news context + speaker transcript history
-- Autonomous market monitoring (cron/scheduled mode)
-- Structured output for dashboards and decision support
-- Calibrated probability assessment with explicit reasoning chains
+## Structure
 
-## Personality
-Precise, analytical, intellectually honest. Shows its work. Labels uncertainty.
-Contrast: Jordan finds meaning. Mentions finds signal.
+- `mentions_core/` - локальный runtime-layer: CLI, pack registry, state/session, scheduler, logging
+- `agents/mentions/` - pack с capability-слоями `transcripts`, `wording`, `news_context`, `analysis`
+- `openclaw-workspace/` - выделенная OpenClaw-facing persona/workspace поверхность
+- `gateway/` - локальные шаблоны и инструкции для официального OpenClaw Gateway
+- `legacy/pmt-architecture-dump/` - read-only архив старой skill/pipeline архитектуры
+- `library/` - legacy compatibility layer для старых импортов и `python -m library ...`
 
-## Best use cases
-- "What's moving on Kalshi today and why?"
-- "Is this price move in [market] signal or noise?"
-- "What has [speaker] said historically about [topic]?"
-- "Give me a deep analysis of [market ticker]."
-- "Run an autonomous scan of top movers and write to dashboard."
+## Install
 
-## Telegram separation
-This agent runs behind a separate Telegram bot binding.
-Set `TELEGRAM_BOT_TOKEN` in `.env` (separate from the main assistant and Jordan).
-
-## Data sources
-1. **Kalshi API** — live market prices, volume, orderbook, history
-2. **News context** — recent headlines affecting market categories
-3. **Transcript corpus** — `library/transcripts/` — speaker history indexed for FTS
-
-## Transcript ingestion
-Drop transcripts (`.txt`, `.pdf`) into `library/incoming/` and run:
-```
-python -m library ingest auto
-```
-This chunks, indexes, and FTS-indexes the transcripts for retrieval during analysis.
-
-## KB-backed runtime
-All runtime logic lives under `library/_core/` and is accessed via the unified CLI:
-```
-python -m library run "<query>"              # full orchestrated response
-python -m library prompt "<query>"           # LLM prompt bundle for OpenClaw
-python -m library frame "<query>"            # market frame selection
-python -m library fetch auto                 # fetch latest Kalshi market data
-python -m library fetch market <ticker>      # fetch a single market
-python -m library analyze "<query>"          # run analysis pipeline
-python -m library ingest auto                # ingest transcripts from incoming/
-python -m library ingest transcript <file>   # register a single transcript
-python -m library kb build                   # rebuild market data + transcript index
-python -m library kb query --query "fed"     # query cached data and transcripts
-python -m library schedule run               # autonomous scheduled run (→ dashboard/)
-python -m library eval audit                 # quality audit
+```bash
+python -m pip install -e '.[dev]'
+pytest
 ```
 
-## Architecture
+После editable install доступен локальный runtime:
+
+```bash
+python -m mentions_core packs
+mentionsctl packs
 ```
-Query / Cron
-  ↓
-Orchestrator (library/_core/runtime/orchestrator.py)
-  ├── Route detection (routes.py)
-  ├── Frame selection (frame.py)
-  ├── Live data fetch (fetch/kalshi.py + fetch/news.py)
-  ├── Transcript retrieval (kb/query.py + FTS)
-  ├── Analysis pipeline (analysis/market.py, signal.py, speaker.py, reasoning.py)
-  ├── LLM prompt assembly (llm_prompt.py)
-  └── Response rendering (respond.py)
-       ↓
-  Session update (session/)
-       ↓
-  Dashboard output (dashboard/latest_analysis.json)
+
+Официальный transport/gateway CLI остаётся за upstream OpenClaw:
+
+```bash
+npm install -g openclaw@latest
+openclaw onboard --install-daemon
 ```
+
+## Local runtime CLI
+
+```bash
+python -m mentions_core answer mentions "<query>"
+python -m mentions_core run mentions "<query>"
+python -m mentions_core prompt mentions "<query>" --system-only
+python -m mentions_core capability mentions transcripts ingest auto
+python -m mentions_core capability mentions analysis url "<kalshi-url>"
+python -m mentions_core capability mentions news_context build "<query>" --require-live
+python -m mentions_core schedule mentions run --dry-run
+```
+
+Для OpenClaw conversational turns удобнее всего:
+
+```bash
+mentionsctl answer mentions "<query>"
+```
+
+## Mentions capabilities
+
+1. `transcripts`
+   - transcript ingest
+   - chunking
+   - FTS search
+   - KB rebuild
+2. `wording`
+   - wording validation
+   - rewrite rules
+   - canonical market phrasing
+3. `news_context`
+   - live news fetch via NewsAPI
+   - cache fallback for analysis
+   - event context
+   - direct / weak / late path mapping
+4. `analysis`
+   - query analysis
+   - Kalshi URL analysis
+   - LLM prompt bundle
+   - autonomous scheduled scan
+
+## Runtime data
+
+- base session/state: `workspace/`
+- Mentions pack data: `workspace/mentions/`
+- generated dashboard output: `dashboard/mentions/`
+
+## Gateway integration
+
+- официальный `openclaw` CLI отвечает за transport, pairing, dashboard и channel routing
+- локальный `mentions_core` отвечает за pack/runtime-логику
+- OpenClaw-facing workspace bootstrap лежит в `openclaw-workspace/`
+- пример gateway-конфига лежит в [gateway/openclaw.local.example.json5](/Users/nshrd/Documents/New%20project/gateway/openclaw.local.example.json5:1)
+
+### Telegram ACP Runbook
+
+Для обычного Telegram DM рабочий путь такой:
+
+1. Подними gateway: `./gateway/run-local-gateway.sh`
+2. Одобри pairing
+3. В чате с ботом отправь:
+
+```text
+/acp spawn codex --bind here --cwd /tmp/mentions-openclaw-workspace
+```
+
+4. После успешного bind общайся обычными сообщениями
+
+Важно: для DM не используй static `bindings[].type="acp"` в gateway config. Рабочий путь — именно `/acp spawn ... --bind here` из самого чата.
+
+## Compatibility
+
+- локальный runtime CLI: `python -m mentions_core ...` или `mentionsctl ...`
+- legacy CLI kept for compatibility: `python -m library ...`
+- legacy imports under `library.*` re-export from `mentions_core` and `agents.mentions`
+
+Path migration details are documented in [MIGRATION.md](/Users/nshrd/Documents/New%20project/MIGRATION.md:1).
 
 ## Environment
-Copy `env.example` to `.env` and fill in:
-- `KALSHI_API_KEY` — Kalshi API credentials
-- `TELEGRAM_BOT_TOKEN` — separate bot token for this agent
+
+Copy `env.example` to `.env` and configure:
+
+- `KALSHI_API_KEY`
+- `KALSHI_API_URL`
+- `KALSHI_ENV`
+- `NEWSAPI_KEY`
+- `TELEGRAM_BOT_TOKEN`

@@ -1,0 +1,29 @@
+{
+  "id": "mentions",
+  "version": "0.1.0",
+  "identity": "Mentions — Kalshi prediction market analyst",
+  "capabilities": [
+    "transcripts",
+    "wording",
+    "news_context",
+    "analysis"
+  ],
+  "commands": [
+    "run",
+    "prompt",
+    "capability",
+    "schedule"
+  ],
+  "required_env": [
+    "KALSHI_API_KEY",
+    "KALSHI_ENV",
+    "KALSHI_API_URL",
+    "NEWSAPI_KEY"
+  ],
+  "schedule_hooks": [
+    "run"
+  ],
+  "emoji": "📊",
+  "category": "analytics",
+  "description": "Rigorous, data-driven analysis of Kalshi prediction markets with multi-source synthesis and explicit reasoning chains."
+}

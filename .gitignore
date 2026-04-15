@@ -1,6 +1,8 @@
 # Environment
 .env
 *.env
+gateway/openclaw.local.json5
+gateway/openclaw.local.json5.bak*
 
 # Python
 __pycache__/
@@ -8,29 +10,19 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.egg-info/
 dist/
 build/
 .eggs/
 
-# DB (generated)
-library/mentions_data.db
-library/mentions_data.db-wal
-library/mentions_data.db-shm
-
-# Build artefacts
-library/ingest_report.json
-library/eval_report.json
-library/runtime_audit_report.json
-library/ingest_jobs.jsonl
-
-# Staging directories
-library/processing/
-library/processed/
-library/failed/
-
 # Workspace state (per-user runtime)
 workspace/
+openclaw-workspace/state/
+.openclaw/
+openclaw-workspace/.openclaw/
 
 # Dashboard output (generated)
 dashboard/

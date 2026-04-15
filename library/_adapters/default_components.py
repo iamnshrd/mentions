@@ -1,12 +1,8 @@
-"""Default component wiring for the Mentions agent.
+"""Compatibility shim for legacy ``library._adapters.default_components`` imports."""
 
-Provides factory functions for the default store and any pluggable components.
-"""
-from __future__ import annotations
-
-from library.config import get_default_store
+from mentions_core.base.config import get_default_store
 
 
 def get_store():
-    """Return the default FileSystemStore singleton."""
+    """Return the default shared store."""
     return get_default_store()

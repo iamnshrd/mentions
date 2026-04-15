@@ -1,27 +1,28 @@
 # NOTES.md — Mentions Development Log
 
 ## Status
-**v0.1 — Scaffolding**
-Repository created. Core structure in place. Runtime wired. No live data yet.
+**v0.4 — split local runtime from official OpenClaw**
+Base/pack split implemented. Local runtime now lives under `mentions_core`, while official `openclaw` is reserved for the upstream Gateway/transport layer.
 
 ## Evolution
-This agent evolved from the `mentions` skill (standalone Kalshi analysis skill) into a full OpenClaw agent with:
-- Persistent session state and continuity tracking (like Jordan)
-- A transcript corpus as a second knowledge source alongside live market data
-- Autonomous cron/scheduler mode for unattended market monitoring
-- Structured JSON output for downstream dashboards
+This project evolved from the `mentions` skill into:
+- reusable `OpenClaw base`
+- pluggable `Mentions` agent pack
+- capability-layer split: transcripts / wording / news_context / analysis
 
 ## Architecture Notes
-- Mirrors Jordan's structure: `library/_core/runtime/`, `library/_core/session/`, `library/_adapters/`
-- Two knowledge sources: live Kalshi API + local transcript corpus (FTS-indexed)
-- Runtime orchestrator supports both interactive (query/response) and autonomous (scheduled) modes
-- SQLite DB: `library/mentions_data.db` — markets, history, analysis cache, transcript chunks
+- Base layer now lives in `mentions_core/`
+- Mentions runtime and capabilities now live in `agents/mentions/`
+- Legacy PMT/skill architecture moved to `legacy/pmt-architecture-dump/`
+- SQLite DB now lives under `workspace/mentions/`
+- `library/` now acts as a compatibility facade instead of a second runtime
+- Package-level legacy imports are covered by tests
+- `gateway/` now holds local config templates for the official OpenClaw Gateway
 
 ## TODO
-- [ ] Connect Kalshi API client (requires `KALSHI_API_KEY`)
 - [ ] Seed initial transcript corpus (Fed speeches, relevant earnings calls)
-- [ ] Configure cron schedule for autonomous market monitoring
-- [ ] Build dashboard output pipeline
+- [ ] Expand test coverage around autonomous scan and capability wrappers
 - [ ] Add embedding support for transcript semantic search
-- [ ] Add eval/regression test suite
 - [ ] Wire Telegram bot binding (separate from main assistant)
+- [ ] Decide when to formally deprecate `python -m library ...`
+- [ ] Wire the official OpenClaw Gateway to this workspace and validate Telegram pairing end-to-end
