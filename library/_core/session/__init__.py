@@ -1,16 +1,19 @@
-"""Legacy session facade for package-level compatibility imports."""
+"""Legacy session facade for package-level compatibility imports.
 
-from library._core.session.checkpoint import log
-from library._core.session.context import assemble
-from library._core.session.continuity import (
+Keep this as a thin re-export surface only. Do not add new session logic here.
+"""
+
+from mentions_core.base.session.checkpoint import log
+from mentions_core.base.session.context import assemble
+from mentions_core.base.session.continuity import (
     load,
     read,
     save,
     summarize,
     update,
 )
-from library._core.session.progress import estimate
-from library._core.session.state import build_user_profile, update_session
+from mentions_core.base.session.progress import estimate
+from mentions_core.base.session.state import build_user_profile, update_session
 
 __all__ = [
     'assemble',

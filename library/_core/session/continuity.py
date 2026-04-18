@@ -1,3 +1,5 @@
 """Compatibility shim for legacy ``library._core.session.continuity`` imports."""
 
-from mentions_core.base.session.continuity import *  # noqa: F401, F403
+from mentions_core.base.session.continuity import load, read, save, summarize, update
+
+__all__ = ['load', 'read', 'save', 'summarize', 'update']

@@ -1,5 +1,8 @@
-"""Legacy evaluation facade for package-level compatibility imports."""
+"""Legacy evaluation facade for package-level compatibility imports.
 
-from library._core.eval.audit import audit
+Keep this as a thin re-export surface only. Do not add new evaluation logic here.
+"""
+
+from agents.mentions.eval.audit import audit
 
 __all__ = ['audit']

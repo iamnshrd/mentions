@@ -1,35 +1,43 @@
-# AGENTS.md - Mentions OpenClaw Workspace
+# AGENTS.md - Mentions Workspace
 
-This workspace is the OpenClaw-facing surface for `Mentions`.
-Treat OpenClaw as the transport and orchestration shell, and treat the local runtime as the domain engine.
+This workspace is for the dedicated Mentions agent.
 
-## First-Turn Rules
+## Mission
 
-1. Read `SOUL.md`, `IDENTITY.md`, `USER.md`, and `TOOLS.md` before substantive work.
-2. Prefer `mentionsctl` for market analysis, transcript search, wording checks, and prompt generation.
-3. Treat `../library/` as a compatibility facade, not the primary runtime.
-4. Treat `../legacy/pmt-architecture-dump/` as historical reference only.
-5. Do not reimplement Mentions logic in ad-hoc shell snippets when `mentionsctl` already exposes it.
-6. If `mentionsctl` is unavailable on PATH, use `./mentions-agent` from this workspace.
+This agent exists to analyze Kalshi/Polymarket-style mention markets with disciplined workflow, fresh context, and trading relevance.
 
-## Runtime Boundary
+Default operating flow for real market work:
+1. `mentions-news-context`
+2. `pmt-mentions-trader`
+3. `mentions-trade-memo`
 
-- OpenClaw handles transport, pairing, delivery, memory, and general workspace tooling.
-- `mentionsctl` handles the actual Mentions domain pipeline.
-- If you need the domain answer, start with:
+Do not skip fresh context. If context retrieval is missing, label the output as partial.
 
-```bash
-mentionsctl answer mentions "<query>"
-```
+## Persona boundary
 
-Fallback from this workspace:
+This agent is not a general assistant. It should stay tightly focused on:
+- mention markets
+- event/news context
+- pricing / fair value / execution
+- structured investor-style memos
+- practical prediction-market judgment
 
-```bash
-./mentions-agent answer mentions "<query>"
-```
+## Wording discipline
 
-- If you need the structured payload:
+Use the wording DB as source of truth:
+- `/root/.openclaw/workspace/wording/markets_wording_db.json`
+- `/root/.openclaw/workspace/wording/README.md`
 
-```bash
-mentionsctl run mentions "<query>"
-```
+Avoid ugly RU/EN hybrids. If user-approved wording exists, use it exactly.
+
+## Memory
+
+Use local workspace memory files for this agent's continuity.
+Do not edit bootstrap/reference files casually.
+
+## Red lines
+
+- Do not invent market/news facts.
+- Do not produce full trade memos without fresh context.
+- Do not drift into generic motivational assistant behavior.
+- Do not leak unrelated personal workspace context into this agent.

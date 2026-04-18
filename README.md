@@ -107,8 +107,15 @@ mentionsctl answer mentions "<query>"
 - локальный runtime CLI: `python -m mentions_core ...` или `mentionsctl ...`
 - legacy CLI kept for compatibility: `python -m library ...`
 - legacy imports under `library.*` re-export from `mentions_core` and `agents.mentions`
+- `library/` is compatibility-only and should not receive new business logic
 
-Path migration details are documented in [MIGRATION.md](/Users/nshrd/Documents/New%20project/MIGRATION.md:1).
+Path migration details are documented in `MIGRATION.md`.
+
+## Runtime infrastructure
+
+- module bindings: `agents/mentions/assets/module_bindings.json`
+- runtime health: `python -m mentions_core health`
+- canonical module wiring: `agents/mentions/module_registry.py`
 
 ## Environment
 

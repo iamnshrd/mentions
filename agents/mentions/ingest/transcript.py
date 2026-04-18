@@ -68,30 +68,157 @@ def _extract_text(path: Path) -> str:
             import os
             try:
                 os.unlink(tmp_path)
-            except OSError:
-                pass
+            except OSError as exc:
+                log.debug('Failed to remove temp transcript file %s: %s', tmp_path, exc)
     log.warning('Unsupported transcript format: %s', path.suffix)
     return ''
 
 
 def _chunk_text(text: str) -> list[str]:
-    """Split text into overlapping chunks."""
-    max_chars = get_threshold('transcript_chunk_max_chars', 2000)
-    overlap = get_threshold('transcript_chunk_overlap_chars', 200)
-    chunks = []
-    start = 0
-    while start < len(text):
-        end = start + max_chars
-        chunk = text[start:end]
-        # Try to break at sentence boundary
-        if end < len(text):
-            last_period = chunk.rfind('. ')
-            if last_period > max_chars * 0.5:
-                end = start + last_period + 1
-                chunk = text[start:end]
-        chunks.append(chunk.strip())
-        start = end - overlap
-    return [c for c in chunks if len(c) >= 50]
+    return [row['text'] for row in _chunk_text_structured(text)]
+
+
+def _chunk_text_structured(text: str) -> list[dict]:
+    """Split text into cleaner structured transcript chunks.
+
+    Returns rows like:
+    - text
+    - section_title
+    - chunk_kind
+    - source_boundary
+    """
+    max_chars = int(get_threshold('transcript_chunk_max_chars', 2000))
+    overlap = int(get_threshold('transcript_chunk_overlap_chars', 200))
+    normalized = '\n'.join(line.rstrip() for line in (text or '').splitlines())
+    paragraphs = [p.strip() for p in normalized.split('\n\n') if p.strip()]
+    if not paragraphs:
+        paragraphs = [normalized.strip()] if normalized.strip() else []
+
+    chunks: list[dict] = []
+    current_parts: list[str] = []
+    current_section = ''
+    current_kind = 'paragraph-window'
+
+    def _detect_heading(line: str) -> str:
+        stripped = (line or '').strip()
+        if not stripped:
+            return ''
+        upper = stripped.upper().rstrip(':')
+        if stripped.startswith('#'):
+            return stripped.lstrip('#').strip()
+        explicit = {
+            'Q&A', 'Q AND A', 'QUESTIONS AND ANSWERS', 'QUESTION AND ANSWER',
+            'PREPARED REMARKS', 'REMARKS', 'INTRODUCTION', 'OPENING REMARKS',
+            'AUDIENCE QUESTION', 'AUDIENCE QUESTIONS'
+        }
+        if upper in explicit:
+            return upper
+        if stripped.endswith(':') and len(stripped.split()) <= 8:
+            label = stripped.rstrip(':').strip()
+            if label.isupper() or label.lower() in {'q&a', 'remarks', 'introduction'}:
+                return label
+        if stripped.upper() == stripped and len(stripped) >= 5:
+            return stripped
+        return ''
+
+    def flush_current(source_boundary: str = 'paragraph'):
+        nonlocal current_parts
+        value = ' '.join(part.strip() for part in current_parts if part.strip()).strip()
+        if value and len(value) >= 80:
+            chunks.append({
+                'text': value,
+                'section_title': current_section,
+                'chunk_kind': current_kind,
+                'source_boundary': source_boundary,
+            })
+        current_parts = []
+
+    for para in paragraphs:
+        para = ' '.join(para.split())
+        if not para:
+            continue
+
+        heading = ''
+        content = para
+        if ':' in para:
+            prefix, suffix = para.split(':', 1)
+            detected = _detect_heading(prefix + ':')
+            if detected and suffix.strip():
+                heading = detected
+                content = suffix.strip()
+        if not heading:
+            heading = _detect_heading(para)
+            if heading:
+                flush_current('heading')
+                current_section = heading
+                continue
+        if heading:
+            flush_current('heading')
+            current_section = heading
+
+        units = _split_sentences(content) if len(content) > max_chars else [content]
+        for unit in units:
+            unit = unit.strip()
+            if not unit:
+                continue
+            candidate = ' '.join(current_parts + [unit]).strip()
+            if len(candidate) <= max_chars:
+                current_parts.append(unit)
+                current_kind = 'sentence-window' if len(units) > 1 else 'paragraph-window'
+                continue
+            flush_current('sentence' if len(units) > 1 else 'paragraph')
+            if len(unit) <= max_chars:
+                current_parts = [unit]
+                current_kind = 'sentence-window' if len(units) > 1 else 'paragraph-window'
+                continue
+            start = 0
+            while start < len(unit):
+                end = min(len(unit), start + max_chars)
+                window = unit[start:end]
+                if end < len(unit):
+                    split = max(window.rfind('. '), window.rfind('; '), window.rfind(', '))
+                    if split > max_chars * 0.45:
+                        end = start + split + 1
+                        window = unit[start:end]
+                piece = window.strip()
+                if len(piece) >= 80:
+                    chunks.append({
+                        'text': piece,
+                        'section_title': current_section,
+                        'chunk_kind': 'hard-window',
+                        'source_boundary': 'hard-split',
+                    })
+                if end >= len(unit):
+                    start = len(unit)
+                else:
+                    start = max(start + 1, end - overlap)
+        flush_current('paragraph')
+
+    deduped = []
+    seen = set()
+    for chunk in chunks:
+        key = chunk['text'][:240]
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(chunk)
+    return deduped
+
+
+def _split_sentences(text: str) -> list[str]:
+    text = ' '.join((text or '').split())
+    if not text:
+        return []
+    parts = []
+    current = []
+    for token in text.split(' '):
+        current.append(token)
+        if token.endswith(('.', '?', '!')) and len(' '.join(current)) >= 80:
+            parts.append(' '.join(current).strip())
+            current = []
+    if current:
+        parts.append(' '.join(current).strip())
+    return parts
 
 
 def _insert_document(path: Path, speaker: str, event: str,

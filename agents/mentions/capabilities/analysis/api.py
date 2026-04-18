@@ -24,7 +24,8 @@ def build_prompt(query: str, user_id: str = 'default',
                  system_only: bool = False) -> dict | str:
     payload = orchestrate_for_llm(query, user_id=user_id)
     if system_only:
-        return payload.get('system', '')
+        response = payload.get('response', '')
+        return response if isinstance(response, str) else ''
     return payload
 
 

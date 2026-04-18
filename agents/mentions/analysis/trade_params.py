@@ -133,7 +133,7 @@ def _get_yes_price(market_data: dict) -> float:
                 # Kalshi returns prices in cents (0–100) or fractions (0–1)
                 return p if p > 1 else p * 100
             except (TypeError, ValueError):
-                pass
+                log.debug('Skipping invalid market price value: %r', val)
     return 50.0  # unknown → coin flip
 
 
@@ -141,6 +141,13 @@ def _extract_win_condition(rules: str, title: str) -> str:
     """Pull the resolution condition from market rules text."""
     if not rules:
         return f'Win condition: {title} resolves YES. See market rules for full criteria.'
+
+    normalized = ' '.join((rules or '').split())
+
+    direct_if = re.search(r'If\s+(.+?),\s*then the market resolves to Yes\.?', normalized, re.IGNORECASE)
+    if direct_if:
+        clause = direct_if.group(1).strip()
+        return f'Win condition: if {clause}, the market resolves Yes.'
 
     # Try to extract the resolution sentence
     patterns = [
@@ -151,16 +158,14 @@ def _extract_win_condition(rules: str, title: str) -> str:
         r'resolves\s+YES\s+if[^\n.]{5,300}',
     ]
     for p in patterns:
-        m = re.search(p, rules, re.IGNORECASE | re.DOTALL)
+        m = re.search(p, normalized, re.IGNORECASE | re.DOTALL)
         if m:
             text = m.group(0).strip()
-            # Truncate at 300 chars
             if len(text) > 300:
                 text = text[:300].rsplit(' ', 1)[0] + '…'
             return text
 
-    # Fallback: first 250 chars of rules
-    return rules[:250].strip() + ('…' if len(rules) > 250 else '')
+    return normalized[:250].strip() + ('…' if len(normalized) > 250 else '')
 
 
 def _assess_difficulty(yes_price: float,

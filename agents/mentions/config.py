@@ -14,6 +14,7 @@ SKILLS = ROOT / 'skills'
 WORDING_DB = ROOT / 'wording' / 'markets_wording_db.json'
 
 DB_PATH = DATA / 'mentions_data.db'
+PMT_KNOWLEDGE_DB = DATA / 'pmt_trader_knowledge.db'
 INCOMING = DATA / 'incoming'
 TRANSCRIPTS = DATA / 'transcripts'
 PROCESSING = DATA / 'processing'
@@ -25,6 +26,7 @@ MARKET_CATEGORIES = ASSETS / 'market_categories.json'
 ANALYSIS_MODES = ASSETS / 'analysis_modes.json'
 SOURCE_PROFILES = ASSETS / 'source_profiles.json'
 THRESHOLDS = ASSETS / 'thresholds.json'
+MODULE_BINDINGS = ASSETS / 'module_bindings.json'
 
 INGEST_REPORT = DATA / 'ingest_report.json'
 EVAL_REPORT = DATA / 'eval_report.json'
@@ -34,6 +36,7 @@ DASHBOARD = PROJECT / 'dashboard' / 'mentions'
 DASHBOARD_LATEST = DASHBOARD / 'latest_analysis.json'
 
 NEWS_API_URL = 'https://newsapi.org/v2/everything'
+GDELT_DOC_API_URL = 'https://api.gdeltproject.org/api/v2/doc/doc'
 
 
 def get_default_store():

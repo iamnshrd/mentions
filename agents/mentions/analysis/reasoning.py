@@ -21,40 +21,40 @@ def build_reasoning_chain(query: str, frame: dict, market_summary: str,
     mode = frame.get('mode', 'deep')
 
     # Step 1: Establish context
-    chain.append(f'Query classified as: {route} (category: {category})')
+    chain.append(f'Маршрут запроса: {route} (категория: {category})')
 
     # Step 2: Market data observation
     if market_summary and 'No live data' not in market_summary:
         # Extract the key fact line
         first_line = market_summary.split('\n')[0]
-        chain.append(f'Market data: {first_line}')
+        chain.append(f'Рыночные данные: {first_line}')
     else:
-        chain.append('Market data: unavailable — analysis based on historical/cached data only')
+        chain.append('Рыночные данные недоступны, разбор опирается на исторический / кэшированный контекст')
 
     # Step 3: Signal assessment
     if isinstance(signal, dict) and signal.get('verdict') != 'unclear':
         verdict = signal.get('verdict', '?')
         strength = signal.get('signal_strength', '?')
         factors = signal.get('factors', [])
-        chain.append(f'Signal verdict: {verdict} (strength: {strength})')
+        chain.append(f'Сигнальная оценка: {verdict} (сила: {strength})')
         for f in factors[:2]:
-            chain.append(f'  Factor: {f}')
+            chain.append(f'  Фактор: {f}')
     else:
-        chain.append('Signal verdict: unclear — insufficient data for classification')
+        chain.append('Сигнальная оценка остаётся неясной, данных для классификации недостаточно')
 
     # Step 4: News context
     if news:
         headlines = [n.get('headline', '') for n in news[:2] if n.get('headline')]
         if headlines:
-            chain.append(f'News context: {headlines[0]}')
+            chain.append(f'Свежий контекст: {headlines[0]}')
 
     # Step 5: Transcript/speaker evidence
     if transcript_context:
         first_line = transcript_context.split('\n')[0][:120]
-        chain.append(f'Historical speaker evidence: {first_line}')
+        chain.append(f'Исторический speaker-контекст: {first_line}')
     else:
         if route in ('speaker-history', 'context-research', 'macro'):
-            chain.append('No relevant transcript evidence found for this query')
+            chain.append('Релевантных транскриптных аналогов для этого запроса пока не найдено')
 
     # Step 6: Route-specific reasoning
     route_inference = _route_inference(route, signal, transcript_context)
@@ -63,7 +63,7 @@ def build_reasoning_chain(query: str, frame: dict, market_summary: str,
 
     # Step 7: Uncertainty label
     confidence = _estimate_confidence(market_summary, signal, transcript_context, news)
-    chain.append(f'Confidence assessment: {confidence}')
+    chain.append(f'Оценка уверенности: {confidence}')
 
     return chain
 
@@ -75,29 +75,29 @@ def _route_inference(route: str, signal: dict, transcript_context: str) -> str:
 
     if route == 'price-movement':
         if verdict == 'signal':
-            return f'Price move confirmed as {strength} signal — likely driven by external catalyst'
-        return 'Price move pattern: inconclusive without catalyst identification'
+            return f'Движение цены похоже на {strength} сигнал, вероятно с внешним катализатором'
+        return 'Паттерн движения цены пока неубедителен без явного катализатора'
 
     if route == 'macro':
         if transcript_context:
-            return 'Macro context: transcript corpus provides relevant speaker positioning'
-        return 'Macro context: no transcript data — rely on market pricing as implicit probability'
+            return 'Макроконтекст: transcript corpus даёт релевантное позиционирование спикера'
+        return 'Макроконтекст: транскриптных данных нет, приходится сильнее опираться на рыночное ценообразование'
 
     if route == 'speaker-history':
         if transcript_context:
-            return 'Speaker history found — cross-reference with current market pricing'
-        return 'No speaker transcript data available — position unknown'
+            return 'История спикера найдена, её стоит сверять с текущим ценообразованием рынка'
+        return 'История спикера по транскриптам недоступна, позиция остаётся слабозаземлённой'
 
     if route == 'signal-or-noise':
         if verdict in ('signal', 'noise'):
-            return f'Signal/noise classification: {verdict} (score-based verdict)'
-        return 'Signal/noise: borderline — consider waiting for more data'
+            return f'Классификация signal/noise: {verdict} (на score-based основе)'
+        return 'Граница между signal и noise пока размыта, лучше дождаться дополнительных данных'
 
     if route == 'breaking-news':
-        return 'Breaking news route: prioritize recency; market may not have fully priced in yet'
+        return 'Для breaking-news кейса важнее свежесть сигнала, рынок мог ещё не полностью это впитать'
 
     if route == 'trend-analysis':
-        return 'Trend analysis: requires multi-point history; single snapshots are insufficient'
+        return 'Trend-analysis требует многоточечной истории, одного snapshot недостаточно'
 
     return ''
 
@@ -115,9 +115,9 @@ def _estimate_confidence(market_summary: str, signal: dict,
         score += 1
 
     if score >= 4:
-        return 'high — multiple corroborating sources'
+        return 'high, есть несколько подтверждающих источников'
     if score >= 2:
-        return 'medium — partial data available'
+        return 'medium, данные частичные, но уже рабочие'
     if score >= 1:
-        return 'low — limited data'
-    return 'very low — no supporting data'
+        return 'low, данных пока мало'
+    return 'very low, подтверждающих данных почти нет'

@@ -37,39 +37,6 @@ def extract_speaker_context(transcript_chunks: list[dict],
     return '\n\n'.join(parts)
 
 
-def find_speaker_pattern(speaker: str, topic: str) -> dict:
-    """Find recurring patterns in a speaker's statements on a topic.
-
-    Queries the transcript DB for the speaker and returns pattern summary.
-    """
-    if not speaker or not topic:
-        return {}
-
-    try:
-        from agents.mentions.kb.query import query_transcripts
-        from agents.mentions.utils import fts_query
-        fts = fts_query(f'{speaker} {topic}')
-        chunks = query_transcripts(fts, limit=10, speaker=speaker)
-
-        if not chunks:
-            return {'speaker': speaker, 'topic': topic, 'pattern': None,
-                    'note': 'No transcript data for this speaker/topic.'}
-
-        texts = [c.get('text', '') for c in chunks if c.get('text')]
-        pattern = _infer_pattern(texts, topic)
-
-        return {
-            'speaker': speaker,
-            'topic': topic,
-            'pattern': pattern,
-            'chunk_count': len(chunks),
-            'note': f'Based on {len(chunks)} transcript segments.',
-        }
-    except Exception as exc:
-        log.debug('Speaker pattern query failed: %s', exc)
-        return {'speaker': speaker, 'topic': topic, 'pattern': None,
-                'note': f'Query failed: {exc}'}
-
 
 def _best_excerpt(texts: list[str], query: str) -> str:
     """Select the most relevant excerpt for *query* from a list of texts."""
@@ -93,23 +60,3 @@ def _best_excerpt(texts: list[str], query: str) -> str:
     return best
 
 
-def _infer_pattern(texts: list[str], topic: str) -> str | None:
-    """Infer a rough pattern label from a set of texts on a topic."""
-    if not texts:
-        return None
-    combined = ' '.join(texts).lower()
-
-    hawkish = sum(1 for w in ['hike', 'raise', 'tighten', 'higher for longer',
-                               'inflation', 'restrictive'] if w in combined)
-    dovish = sum(1 for w in ['cut', 'ease', 'lower', 'supportive', 'dovish',
-                              'accommodative'] if w in combined)
-    cautious = sum(1 for w in ['uncertain', 'data-dependent', 'wait', 'monitor',
-                                'cautious', 'gradual'] if w in combined)
-
-    if hawkish > dovish and hawkish > cautious:
-        return 'hawkish'
-    if dovish > hawkish and dovish > cautious:
-        return 'dovish'
-    if cautious >= hawkish and cautious >= dovish:
-        return 'data-dependent'
-    return 'mixed'

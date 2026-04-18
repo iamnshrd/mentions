@@ -1,3 +1,8 @@
-"""Compatibility shim for legacy ``library._core.analysis.history`` imports."""
+"""Legacy compatibility placeholder for retired historical analysis helpers.
 
-from agents.mentions.analysis.history import *  # noqa: F401, F403
+No active runtime path should depend on this module. It remains only so old
+imports fail softly at the package level instead of pretending historical
+analysis helpers still exist here.
+"""
+
+__all__: list[str] = []

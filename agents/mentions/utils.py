@@ -97,8 +97,8 @@ def save_json(path, data, ensure_ascii=False, indent=2):
     except BaseException:
         try:
             os.unlink(tmp)
-        except OSError:
-            pass
+        except OSError as exc:
+            log.debug('Failed to remove temp file %s: %s', tmp, exc)
         raise
 
 

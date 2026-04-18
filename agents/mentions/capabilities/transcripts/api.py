@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from agents.mentions.ingest.auto import ingest as ingest_auto_impl
+from agents.mentions.ingest.manual_transcript import ingest_manual_transcript as ingest_manual_transcript_impl
 from agents.mentions.ingest.transcript import register as register_transcript
 from agents.mentions.kb.build import build as build_kb_impl
 from agents.mentions.kb.query import query_transcripts as raw_query_transcripts
@@ -15,6 +16,27 @@ def ingest_auto(dry_run: bool = False) -> dict:
 def ingest_transcript(source_file: str, speaker: str = '', event: str = '',
                       event_date: str = '') -> dict:
     return register_transcript(source_file, speaker=speaker, event=event, event_date=event_date)
+
+
+def ingest_manual_transcript(source_file: str, speaker: str = '', event: str = '',
+                             event_date: str = '', format_tags: list[str] | None = None,
+                             topic_tags: list[str] | None = None,
+                             event_tags: list[str] | None = None,
+                             mention_tags: list[str] | None = None,
+                             quality_tags: list[str] | None = None,
+                             notes: str = '') -> dict:
+    return ingest_manual_transcript_impl(
+        source_file,
+        speaker=speaker,
+        event=event,
+        event_date=event_date,
+        format_tags=format_tags,
+        topic_tags=topic_tags,
+        event_tags=event_tags,
+        mention_tags=mention_tags,
+        quality_tags=quality_tags,
+        notes=notes,
+    )
 
 
 def build_kb() -> dict:

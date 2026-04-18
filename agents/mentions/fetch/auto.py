@@ -17,8 +17,8 @@ def fetch_all(dry_run: bool = False) -> dict:
     limit = get_threshold('top_movers_limit', 10)
 
     try:
-        from agents.mentions.fetch.kalshi import get_top_movers
-        markets = get_top_movers(limit=limit)
+        from agents.mentions.modules.kalshi_provider import get_top_movers_bundle
+        markets = get_top_movers_bundle(limit=limit).get('markets', [])
     except Exception as exc:
         log.warning('Kalshi top movers fetch failed: %s', exc)
         markets = []

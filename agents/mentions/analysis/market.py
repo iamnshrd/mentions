@@ -35,13 +35,28 @@ def analyze_market(market_retrieval: dict, frame: dict) -> str:
     # Search results (when no specific ticker)
     if isinstance(market_data, dict) and 'search_results' in market_data:
         results = market_data['search_results']
+        resolved = market_data.get('resolved_market') or {}
         if results:
             lines = [f'Found {len(results)} matching markets:']
-            for m in results[:3]:
-                t = m.get('ticker', '?')
-                title = m.get('title', '?')
-                yes = m.get('yes_bid', m.get('yes_price', '?'))
-                lines.append(f'  • {t}: {title} — YES {yes}¢')
+            ranked = resolved.get('candidates') or []
+            if ranked:
+                lines.append(
+                    f"Top resolved candidate: {resolved.get('ticker', '?')}"
+                    f" ({resolved.get('confidence', 'low')}, {resolved.get('rationale', '')})"
+                )
+                top_index = {row.get('ticker'): row for row in ranked[:3]}
+                ordered = [top_index[t] for t in top_index]
+                for row in ordered[:3]:
+                    lines.append(
+                        f"  • {row.get('ticker', '?')}: {row.get('title', '?')}"
+                        f" — score {row.get('score', '?')}"
+                    )
+            else:
+                for m in results[:3]:
+                    t = m.get('ticker', '?')
+                    title = m.get('title', '?')
+                    yes = m.get('yes_bid', m.get('yes_price', '?'))
+                    lines.append(f'  • {t}: {title} — YES {yes}¢')
             parts.append('\n'.join(lines))
 
     # Cached analysis hint
@@ -86,7 +101,7 @@ def _format_history_summary(history: list) -> str:
                 try:
                     prices.append(float(p))
                 except (ValueError, TypeError):
-                    pass
+                    log.debug('Skipping non-numeric history price: %r', p)
 
     if len(prices) < 2:
         return ''

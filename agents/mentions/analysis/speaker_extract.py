@@ -12,6 +12,8 @@ from __future__ import annotations
 import logging
 import re
 
+from agents.mentions.modules.kalshi_provider import get_market_bundle
+
 log = logging.getLogger('mentions')
 
 # event-type keywords → label
@@ -52,7 +54,7 @@ def extract_speaker(market_data: dict,
     Parameters
     ----------
     market_data:
-        Dict returned by ``kalshi.get_market()``.
+        Dict returned by ``get_market_bundle(...)[\"market\"]``.
     url_info:
         Optional dict from ``url_parser.parse_kalshi_url()``.
 
@@ -113,6 +115,12 @@ def _find_speaker_in_text(text: str) -> tuple[str, dict]:
         if slug in text:
             return slug, _SPEAKER_MAP[slug]
     return '', {}
+
+
+def extract_speaker_from_ticker(ticker: str, url_info: dict | None = None) -> dict:
+    """Compatibility helper for callers that only have a market ticker."""
+    bundle = get_market_bundle(ticker)
+    return extract_speaker(bundle.get('market', {}), url_info=url_info)
 
 
 def _slugify_name(slug: str) -> str:

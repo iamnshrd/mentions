@@ -4,6 +4,7 @@ Supported URL formats:
   https://www.kalshi.com/markets/{series}/{ticker}
   https://kalshi.com/markets/{series}/{ticker}
   https://trading.kalshi.com/markets/{series}/{ticker}
+  https://kalshi.com/markets/{series}/{pretty-slug}/{ticker}
 """
 from __future__ import annotations
 
@@ -33,6 +34,9 @@ _SPEAKER_MAP: dict[str, dict] = {
     'biden':          {'name': 'Joe Biden',         'org': 'White House',     'domain': 'politics'},
     'harris':         {'name': 'Kamala Harris',     'org': 'US Government',   'domain': 'politics'},
     'leavitt':        {'name': 'Karoline Leavitt',  'org': 'White House',     'domain': 'politics'},
+    'secpress':       {'name': 'White House Press Secretary', 'org': 'White House', 'domain': 'politics', 'role': 'press-secretary'},
+    'presssec':       {'name': 'White House Press Secretary', 'org': 'White House', 'domain': 'politics', 'role': 'press-secretary'},
+    'sec':            {'name': 'White House Press Secretary', 'org': 'White House', 'domain': 'politics', 'role': 'press-secretary'},
     # Other institutions
     'lagarde':        {'name': 'Christine Lagarde', 'org': 'ECB',             'domain': 'macro'},
     'yellen':         {'name': 'Janet Yellen',      'org': 'US Treasury',     'domain': 'macro'},
@@ -67,13 +71,14 @@ def parse_kalshi_url(url: str) -> dict:
     Returns::
 
         {
-            'ticker': str,         # e.g. 'KXINFANTINOMENTION-26APR15'
-            'series_slug': str,    # e.g. 'kxinfantinomention'
-            'speaker_slug': str,   # e.g. 'infantino'
-            'speaker_info': dict,  # from _SPEAKER_MAP or {}
-            'event_type': str,     # mention_market / press_conference / speech / …
+            'ticker': str,
+            'series_slug': str,
+            'speaker_slug': str,
+            'speaker_info': dict,
+            'event_type': str,
             'raw_url': str,
             'is_kalshi_url': bool,
+            'pretty_slug': str,
         }
     """
     url = (url or '').strip()
@@ -85,6 +90,8 @@ def parse_kalshi_url(url: str) -> dict:
         'event_type': 'unknown',
         'raw_url': url,
         'is_kalshi_url': False,
+        'pretty_slug': '',
+        'ticker_kind': 'unknown',
     }
 
     if not url:
@@ -102,23 +109,34 @@ def parse_kalshi_url(url: str) -> dict:
 
     result['is_kalshi_url'] = True
 
-    # Extract /markets/{series}/{ticker}
-    m = re.search(r'/markets/([^/?#]+)/([^/?#]+)', url, re.IGNORECASE)
-    if m:
-        series_slug = m.group(1).lower()
-        ticker_raw  = m.group(2)
+    # Extract /markets/{series}/{pretty-slug}/{ticker} first
+    m3 = re.search(r'/markets/([^/?#]+)/([^/?#]+)/([^/?#]+)', url, re.IGNORECASE)
+    if m3:
+        series_slug = m3.group(1).lower()
+        pretty_slug = m3.group(2).lower()
+        ticker_raw = m3.group(3)
         result['series_slug'] = series_slug
-        result['ticker']      = ticker_raw.upper()
+        result['pretty_slug'] = pretty_slug
+        result['ticker'] = ticker_raw.upper()
     else:
-        # Try to pull any ticker-looking token from the URL
-        m2 = re.search(r'([A-Z]{2,20}-[A-Z0-9]{2,20}(?:-[A-Z0-9]{2,10})*)', url.upper())
-        if m2:
-            result['ticker'] = m2.group(1)
-        return result
+        # Extract /markets/{series}/{ticker}
+        m = re.search(r'/markets/([^/?#]+)/([^/?#]+)', url, re.IGNORECASE)
+        if m:
+            series_slug = m.group(1).lower()
+            ticker_raw  = m.group(2)
+            result['series_slug'] = series_slug
+            result['ticker']      = ticker_raw.upper()
+        else:
+            # Try to pull any ticker-looking token from the URL
+            m2 = re.search(r'([A-Z]{2,20}-[A-Z0-9]{2,20}(?:-[A-Z0-9]{2,10})*)', url.upper())
+            if m2:
+                result['ticker'] = m2.group(1)
+            return result
 
     slug = result['series_slug']
     result['event_type'] = _infer_event_type(slug)
     result['speaker_slug'], result['speaker_info'] = _extract_speaker(slug)
+    result['ticker_kind'] = _infer_ticker_kind(result.get('ticker', ''), slug)
 
     return result
 
@@ -134,6 +152,10 @@ def _strip_prefix(slug: str) -> str:
 def _extract_speaker(slug: str) -> tuple[str, dict]:
     """Return (speaker_slug, speaker_info) by matching _SPEAKER_MAP against *slug*."""
     core = _strip_prefix(slug)
+
+    if any(token in core for token in ['secpress', 'presssec', 'sec-press', 'press-mentions']):
+        return 'secpress', _SPEAKER_MAP['secpress']
+
     # Try longest-match first
     for name in sorted(_SPEAKER_MAP.keys(), key=len, reverse=True):
         if name in core:
@@ -150,3 +172,21 @@ def _infer_event_type(slug: str) -> str:
         if kw in slug:
             return etype
     return 'event'
+
+
+def _infer_ticker_kind(ticker: str, series_slug: str) -> str:
+    value = (ticker or '').upper().strip()
+    if not value:
+        return 'unknown'
+    series_prefix = (series_slug or '').upper().strip()
+    if series_prefix and value == series_prefix:
+        return 'series'
+    parts = value.split('-')
+    suffix = parts[-1] if parts else ''
+    if suffix.isdigit() and len(suffix) == 6:
+        return 'event'
+    if len(parts) == 2 and parts[-1].startswith('26') and len(parts[-1]) == 7:
+        return 'event'
+    if '-' in value and len(suffix) >= 3 and not suffix.isdigit():
+        return 'market'
+    return 'unknown'

@@ -1,13 +1,23 @@
-"""Legacy analysis facade for package-level compatibility imports."""
+"""Legacy compatibility barrel for historical ``library._core.analysis`` imports.
 
-from library._core.analysis.event_context import analyze_event_context
-from library._core.analysis.history import compute_base_rate, find_historical_patterns
-from library._core.analysis.market import analyze_market
-from library._core.analysis.reasoning import build_reasoning_chain
-from library._core.analysis.signal import assess_signal
-from library._core.analysis.speaker import extract_speaker_context, find_speaker_pattern
-from library._core.analysis.speaker_extract import analyse_speaker_tendency, extract_speaker
-from library._core.analysis.trade_params import compute_trade_params
+Current code should prefer `agents.mentions.analysis.*` or higher-level
+runtime/module entrypoints on the active path.
+
+Note: some exports here survive only for compatibility and are not used by the
+repo-local current path. Keep this file as a thin re-export surface only.
+"""
+
+from agents.mentions.analysis.event_context import analyze_event_context
+from agents.mentions.analysis.market import analyze_market
+from agents.mentions.analysis.reasoning import build_reasoning_chain
+from agents.mentions.analysis.signal import assess_signal
+from agents.mentions.analysis.speaker import extract_speaker_context
+from agents.mentions.analysis.speaker_extract import (
+    analyse_speaker_tendency,
+    extract_speaker,
+    extract_speaker_from_ticker,
+)
+from agents.mentions.analysis.trade_params import compute_trade_params
 
 __all__ = [
     'analyse_speaker_tendency',
@@ -15,10 +25,8 @@ __all__ = [
     'analyze_market',
     'assess_signal',
     'build_reasoning_chain',
-    'compute_base_rate',
     'compute_trade_params',
     'extract_speaker',
     'extract_speaker_context',
-    'find_historical_patterns',
-    'find_speaker_pattern',
+    'extract_speaker_from_ticker',
 ]

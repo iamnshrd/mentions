@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Axios",
+    "category": "politics",
+    "feed_url": "https://api.axios.com/feed/"
+  },
+  {
+    "name": "The Hill",
+    "category": "politics",
+    "feed_url": "https://thehill.com/feed/"
+  },
+  {
+    "name": "Associated Press",
+    "category": "world",
+    "feed_url": "https://feeds.apnews.com/rss/apf-topnews"
+  },
+  {
+    "name": "BBC World",
+    "category": "world",
+    "feed_url": "http://feeds.bbci.co.uk/news/world/rss.xml"
+  },
+  {
+    "name": "Al Jazeera",
+    "category": "world",
+    "feed_url": "https://www.aljazeera.com/xml/rss/all.xml"
+  },
+  {
+    "name": "Guardian World",
+    "category": "world",
+    "feed_url": "https://www.theguardian.com/world/rss"
+  },
+  {
+    "name": "Guardian US Politics",
+    "category": "politics",
+    "feed_url": "https://www.theguardian.com/us-news/us-politics/rss"
+  },
+  {
+    "name": "CBS Politics",
+    "category": "politics",
+    "feed_url": "https://www.cbsnews.com/latest/rss/politics"
+  },
+  {
+    "name": "NPR Politics",
+    "category": "politics",
+    "feed_url": "https://feeds.npr.org/1014/rss.xml"
+  },
+  {
+    "name": "BBC US & Canada",
+    "category": "politics",
+    "feed_url": "http://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml"
+  },
+  {
+    "name": "AP Top News",
+    "category": "world",
+    "feed_url": "https://feeds.apnews.com/rss/apf-topnews"
+  },
+  {
+    "name": "Sky News World",
+    "category": "world",
+    "feed_url": "https://feeds.skynews.com/feeds/rss/world.xml"
+  },
+  {
+    "name": "CNBC World",
+    "category": "world",
+    "feed_url": "https://www.cnbc.com/id/100727362/device/rss/rss.html"
+  }
+]

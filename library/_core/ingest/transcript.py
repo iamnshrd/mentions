@@ -1,3 +1,5 @@
 """Compatibility shim for legacy ``library._core.ingest.transcript`` imports."""
 
-from agents.mentions.ingest.transcript import *  # noqa: F401, F403
+from agents.mentions.ingest.transcript import register
+
+__all__ = ['register']

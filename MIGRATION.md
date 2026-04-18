@@ -54,3 +54,4 @@
 - old `python -m library ...` CLI usage
 
 It is intentionally thin and should not receive new business logic.
+See also: `library/README.md`.

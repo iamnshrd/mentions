@@ -49,9 +49,9 @@ def _cmd_fetch(args) -> int:
         _print_payload(fetch_all(dry_run=args.dry_run))
         return 0
 
-    from library._core.fetch.kalshi import get_market
+    from agents.mentions.modules.kalshi_provider import get_market_bundle
 
-    _print_payload(get_market(args.ticker))
+    _print_payload(get_market_bundle(args.ticker).get('market', {}))
     return 0
 
 

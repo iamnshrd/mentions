@@ -9,6 +9,7 @@ from mentions_core.base.logging_config import setup as setup_logging
 from mentions_core.base.registry import get_pack, list_packs
 from mentions_core.base.scheduler.runner import run_pack_schedule
 from mentions_core.base.utils import load_dotenv_files
+from mentions_core.base.bootstrap_checks import run_bootstrap_checks
 
 
 def _print_payload(payload):
@@ -61,6 +62,11 @@ def cmd_packs(_args):
     _print_payload({'packs': list_packs()})
 
 
+def cmd_health(_args):
+    from agents.mentions.runtime.validation import runtime_validation_report
+    _print_payload(runtime_validation_report())
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog='python -m mentions_core',
@@ -103,6 +109,9 @@ def build_parser():
     p_packs = sub.add_parser('packs', help='List registered packs')
     p_packs.set_defaults(func=cmd_packs)
 
+    p_health = sub.add_parser('health', help='Show runtime infrastructure health')
+    p_health.set_defaults(func=cmd_health)
+
     return parser
 
 
@@ -115,6 +124,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
     try:
+        if args.command != 'health':
+            run_bootstrap_checks(strict=False)
         args.func(args)
         return 0
     except Exception as exc:  # noqa: BLE001 - CLI boundary

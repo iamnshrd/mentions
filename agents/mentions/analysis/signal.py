@@ -61,8 +61,8 @@ def assess_signal(market_retrieval: dict, frame: dict) -> dict:
                 elif ratio > 0.5:
                     signal_score += 0.5
                     factors.append(f'Normal volume: {ratio:.1f}x open interest')
-            except (ValueError, ZeroDivisionError):
-                pass
+            except (ValueError, ZeroDivisionError) as exc:
+                log.debug('Skipping volume/open-interest ratio calc: %s', exc)
 
     # Route context — breaking-news and macro routes boost signal confidence
     route = frame.get('route', '')
@@ -104,7 +104,7 @@ def _compute_price_move(history: list) -> float | None:
                 try:
                     prices.append(float(p))
                 except (ValueError, TypeError):
-                    pass
+                    log.debug('Skipping non-numeric history price: %r', p)
     if len(prices) < 2:
         return None
     first, last = prices[0], prices[-1]

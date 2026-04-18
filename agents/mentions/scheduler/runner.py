@@ -63,8 +63,8 @@ def run_autonomous(dry_run: bool = False) -> dict:
 def _fetch_top_movers(limit: int) -> list[dict]:
     """Fetch top active markets. Returns [] on failure."""
     try:
-        from agents.mentions.fetch.kalshi import get_top_movers
-        return get_top_movers(limit=limit)
+        from agents.mentions.modules.kalshi_provider import get_top_movers_bundle
+        return get_top_movers_bundle(limit=limit).get('markets', [])
     except Exception as exc:
         log.warning('Top movers fetch failed: %s', exc)
         return []
@@ -73,7 +73,7 @@ def _fetch_top_movers(limit: int) -> list[dict]:
 def _analyze_market(ticker: str, market: dict) -> dict:
     """Run the full analysis pipeline for a single market."""
     from agents.mentions.runtime.frame import select_frame
-    from agents.mentions.runtime.retrieve import build_retrieval_bundle
+    from agents.mentions.runtime.retrieve import retrieve_bundle_for_frame
     from agents.mentions.runtime.synthesize import synthesize
     from mentions_core.base.session.checkpoint import log as log_checkpoint
 
@@ -82,7 +82,7 @@ def _analyze_market(ticker: str, market: dict) -> dict:
     frame['mode'] = 'autonomous'
 
     # Inject known market data directly into retrieval bundle
-    bundle = build_retrieval_bundle(query, frame)
+    bundle = retrieve_bundle_for_frame(query, frame)
     if not bundle['market']['market_data']:
         bundle['market']['market_data'] = market
 

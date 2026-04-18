@@ -118,8 +118,8 @@ def ingest(dry_run: bool = False) -> dict:
                 if src.exists():
                     try:
                         shutil.move(str(src), str(fail_dest))
-                    except OSError:
-                        pass
+                    except OSError as exc:
+                        log.debug('Failed to move %s to %s: %s', src, fail_dest, exc)
                     break
             errors.append({'file': path.name, 'error': str(exc)})
             _append_job({'file': path.name, 'status': 'error',
