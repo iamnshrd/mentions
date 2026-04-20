@@ -17,6 +17,13 @@ build/
 library/mentions_data.db
 library/mentions_data.db-wal
 library/mentions_data.db-shm
+*.db-wal
+*.db-shm
+*.db.bak
+*.bak
+
+# Claude Code session state
+.claude/
 
 # Build artefacts
 library/ingest_report.json

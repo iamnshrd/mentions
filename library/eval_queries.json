@@ -1,0 +1,107 @@
+[
+  {
+    "id": "q001",
+    "query": "why is BTC moving today?",
+    "expected_intent": "market_analysis",
+    "expected_route": "price-movement",
+    "expected_entities": {}
+  },
+  {
+    "id": "q002",
+    "query": "what has Powell said about rates?",
+    "expected_intent": "speaker_lookup",
+    "expected_route": "speaker-history",
+    "expected_entities": {"speaker": "Powell"}
+  },
+  {
+    "id": "q003",
+    "query": "similar setup to 2024 election night",
+    "expected_intent": "historical_case",
+    "expected_route": "context-research",
+    "expected_entities": {}
+  },
+  {
+    "id": "q004",
+    "query": "what is the rule for entry pricing when liquidity is thin?",
+    "expected_intent": "heuristic_lookup",
+    "expected_route": "context-research",
+    "expected_entities": {}
+  },
+  {
+    "id": "q005",
+    "query": "fed just announced a rate cut",
+    "expected_intent": "breaking_news",
+    "expected_route": "breaking-news",
+    "expected_entities": {}
+  },
+  {
+    "id": "q006",
+    "query": "should I close my BTC position?",
+    "expected_intent": "portfolio_check",
+    "expected_route": "portfolio",
+    "expected_entities": {}
+  },
+  {
+    "id": "q007",
+    "query": "kalshi vs polymarket on Trump 2024",
+    "expected_intent": "comparison",
+    "expected_route": "comparison",
+    "expected_entities": {}
+  },
+  {
+    "id": "q008",
+    "query": "hello there",
+    "expected_intent": "general_chat",
+    "expected_route": "general-market",
+    "expected_entities": {}
+  },
+  {
+    "id": "q009",
+    "query": "what about KXBTCD-25DEC liquidity this week?",
+    "expected_intent": "market_analysis",
+    "expected_route": "price-movement",
+    "expected_entities": {"ticker": "KXBTCD-25DEC"}
+  },
+  {
+    "id": "q010",
+    "query": "background on the infantino fifa world cup market",
+    "expected_intent": "speaker_lookup",
+    "expected_route": "speaker-event",
+    "expected_entities": {"speaker": "Infantino"}
+  },
+  {
+    "id": "q011",
+    "query": "trend in crypto markets over the last quarter",
+    "expected_intent": "market_analysis",
+    "expected_route": "trend-analysis",
+    "expected_entities": {}
+  },
+  {
+    "id": "q012",
+    "query": "what did Musk say about Doge yesterday?",
+    "expected_intent": "speaker_lookup",
+    "expected_route": "speaker-history",
+    "expected_entities": {"speaker": "Musk"}
+  },
+  {
+    "id": "q013",
+    "query": "is this bitcoin move signal or noise?",
+    "expected_intent": "market_analysis",
+    "expected_route": "signal-or-noise",
+    "expected_entities": {}
+  },
+  {
+    "id": "q014",
+    "query": "explain the macro context around current fed policy",
+    "expected_intent": "market_analysis",
+    "expected_route": "macro",
+    "expected_entities": {}
+  },
+  {
+    "id": "q015",
+    "query": "почему упал биткоин?",
+    "expected_intent": "market_analysis",
+    "expected_route": "price-movement",
+    "expected_entities": {}
+  }
+]

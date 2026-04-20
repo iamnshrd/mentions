@@ -15,10 +15,12 @@ from library._core.runtime.synthesize import synthesize
 from library._core.runtime.respond import respond
 from library._core.runtime.llm_prompt import build_prompt, build_fallback_prompt
 from library._core.session.continuity import read as read_continuity
+from library._core.session.continuity import update as update_continuity
 from library._core.session.state import build_user_profile, update_session
 from library._core.session.checkpoint import log as log_checkpoint
 from library._core.session.context import assemble as assemble_context
 from library._core.session.progress import estimate as estimate_progress
+from library._core.obs import with_trace, trace_event
 from library._core.state_store import StateStore
 from library.config import get_default_store
 from library.utils import timing_context, get_threshold
@@ -78,9 +80,16 @@ def orchestrate(query: str, user_id: str = 'default',
     if _is_kalshi_url(query):
         return orchestrate_url(query, user_id=user_id, store=store)
 
-    with timing_context() as timings:
-        result = _orchestrate_inner(query, user_id=user_id, store=store)
-    result['_timings'] = timings
+    with with_trace() as tid:
+        trace_event('trace.start', kind='orchestrate',
+                    query_preview=query[:200], user_id=user_id)
+        with timing_context() as timings:
+            result = _orchestrate_inner(query, user_id=user_id, store=store)
+        result['_timings']  = timings
+        result['_trace_id'] = tid
+        trace_event('trace.end', kind='orchestrate',
+                    route=result.get('route', ''),
+                    mode=result.get('mode', ''))
     return result
 
 
@@ -98,9 +107,14 @@ def orchestrate_url(url: str, user_id: str = 'default',
     url = (url or '').strip()
     store = store or get_default_store()
 
-    with timing_context() as timings:
-        result = _orchestrate_url_inner(url, user_id=user_id, store=store)
-    result['_timings'] = timings
+    with with_trace() as tid:
+        trace_event('trace.start', kind='orchestrate_url',
+                    url=url, user_id=user_id)
+        with timing_context() as timings:
+            result = _orchestrate_url_inner(url, user_id=user_id, store=store)
+        result['_timings']  = timings
+        result['_trace_id'] = tid
+        trace_event('trace.end', kind='orchestrate_url')
     return result
 
 
@@ -209,9 +223,22 @@ def _orchestrate_url_inner(url: str, user_id: str = 'default',
         category=speaker_info.get('domain', 'general'),
         mode='deep',
         confidence=confidence,
+        intent='speaker_lookup',
+        intent_source='url',
+        speaker=speaker_name,
+        ticker=ticker,
         user_id=user_id,
         store=store,
     )
+    try:
+        update_continuity(
+            ticker, route='speaker-event',
+            category=speaker_info.get('domain', 'general'),
+            intent='speaker_lookup', speaker=speaker_name, ticker=ticker,
+            user_id=user_id, store=store,
+        )
+    except Exception as exc:
+        log.debug('continuity.update (URL path) failed: %s', exc)
 
     log_checkpoint({
         'query':           url,
@@ -286,6 +313,10 @@ def _orchestrate_inner(query: str, user_id: str = 'default',
 
     route    = frame.get('route', 'general-market')
     category = frame.get('category', 'general')
+    intent   = frame.get('intent', '')
+    entities = frame.get('entities') or {}
+    speaker  = frame.get('speaker') or entities.get('speaker', '')
+    ticker   = entities.get('ticker', '')
 
     update_session(
         query,
@@ -293,9 +324,24 @@ def _orchestrate_inner(query: str, user_id: str = 'default',
         category=category,
         mode=mode,
         confidence=confidence,
+        intent=intent,
+        intent_confidence=float(frame.get('intent_confidence', 0.0) or 0.0),
+        intent_source=frame.get('intent_source', ''),
+        speaker=speaker,
+        ticker=ticker,
         user_id=user_id,
         store=store,
     )
+
+    # v4: fold intent + entities into continuity tallies.
+    try:
+        update_continuity(
+            query, route=route, category=category,
+            intent=intent, speaker=speaker, ticker=ticker,
+            user_id=user_id, store=store,
+        )
+    except Exception as exc:
+        log.debug('continuity.update failed (non-fatal): %s', exc)
 
     log_checkpoint({
         'query':           query,

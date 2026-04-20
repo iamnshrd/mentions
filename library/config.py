@@ -49,6 +49,10 @@ CONTINUITY_SUMMARY = WORKSPACE / 'continuity_summary.json'
 EVAL_REPORT = ROOT / 'eval_report.json'
 RUNTIME_AUDIT_REPORT = ROOT / 'runtime_audit_report.json'
 
+# --- Observability (Phase 7+) ---
+METRICS_LOG = WORKSPACE / 'metrics.jsonl'
+TRACE_LOG   = WORKSPACE / 'traces.jsonl'
+
 # --- Multi-tenant store factory ---
 
 _default_store = None

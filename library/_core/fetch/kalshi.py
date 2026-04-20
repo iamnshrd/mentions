@@ -3,19 +3,54 @@
 Wraps the Kalshi REST API for markets, orderbook, and price history.
 All functions return plain dicts/lists; callers handle persistence.
 
-Set KALSHI_API_KEY and KALSHI_API_URL (or KALSHI_ENV=demo) in environment.
+Production hardening (v0.12):
+
+* **Rate limit** — a module-global :class:`TokenBucket` paces calls at
+  ``KALSHI_RATE_LIMIT`` req/s (default 10, matches the Kalshi public
+  ceiling). ``acquire()`` blocks when the bucket is empty.
+* **Response cache** — successful GETs are cached in SQLite with a
+  configurable TTL (``live_ttl=30s`` for market data,
+  ``static_ttl=3600s`` for metadata). Misses + bypass queries never
+  pay cache overhead.
+* **Retry** — transient failures (429, 5xx, connection errors) are
+  retried with exponential backoff using :func:`with_retry` from the
+  LLM retry layer.
+* **Metrics + trace** — every call emits ``kalshi.call_attempt``,
+  ``kalshi.call_ok`` / ``kalshi.call_err``, ``kalshi.cache_hit`` /
+  ``kalshi.cache_miss``, ``kalshi.latency_ms``, and a
+  ``kalshi.call`` trace event.
+
+Set ``KALSHI_API_KEY`` and ``KALSHI_API_URL`` (or ``KALSHI_ENV=demo``)
+in environment.
 """
 from __future__ import annotations
 
+import json as _json
 import logging
 import os
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from functools import lru_cache
+
+from library._core.fetch.rate_limit import TokenBucket
 
 log = logging.getLogger('mentions')
 
 _PROD_URL = 'https://trading-api.kalshi.com/trade-api/v2'
 _DEMO_URL = 'https://demo-api.kalshi.co/trade-api/v2'
+
+# Module-global rate limiter. Configurable via env for tests / lower tiers.
+_LIMITER = TokenBucket(
+    capacity=int(os.environ.get('KALSHI_RATE_CAPACITY', '10')),
+    refill_per_sec=float(os.environ.get('KALSHI_RATE_LIMIT', '10.0')),
+)
+
+# Default TTLs (seconds). Callers that want static behaviour pass
+# ``ttl=...`` to :func:`_get` directly; these are just defaults.
+_TTL_LIVE   = int(os.environ.get('KALSHI_CACHE_TTL_LIVE',   '30'))
+_TTL_STATIC = int(os.environ.get('KALSHI_CACHE_TTL_STATIC', '3600'))
 
 
 def _base_url() -> str:
@@ -38,19 +73,133 @@ def _headers() -> dict:
     return h
 
 
-def _get(path: str, params: dict | None = None, timeout: int = 10) -> dict | list | None:
-    """Make a GET request to the Kalshi API. Returns parsed JSON or None."""
-    import urllib.request, urllib.parse, json as _json
+class _HTTPStatusError(Exception):
+    """Wraps a non-2xx HTTP response so :func:`is_retryable` can classify it."""
+
+    def __init__(self, status_code: int, url: str, body: str = ''):
+        super().__init__(f'HTTP {status_code} from {url}')
+        self.status_code = status_code
+        self.url         = url
+        self.body        = body
+
+
+def _cache_key(path: str, params: dict | None) -> str:
+    env = os.environ.get('KALSHI_ENV', 'demo').lower()
+    if params:
+        p = urllib.parse.urlencode(sorted(params.items()))
+    else:
+        p = ''
+    return f'kalshi:{env}:GET:{path}?{p}'
+
+
+def _cache_cm():
+    """Return a context-manager yielding a SQLite connection, or None.
+
+    Wraps :func:`library.db.connect` so callers can ``with _cache_cm() as c:``.
+    Returns None if the DB layer is unavailable (e.g. import errors in tests).
+    """
+    try:
+        from library.db import connect
+        return connect()
+    except Exception as exc:  # pragma: no cover — bare safety net
+        log.debug('_cache_cm failed: %s', exc)
+        return None
+
+
+def _get(path: str, params: dict | None = None,
+         timeout: int = 10,
+         *, ttl: int | None = _TTL_LIVE,
+         use_cache: bool = True) -> dict | list | None:
+    """GET a Kalshi API path. Returns parsed JSON or ``None`` on failure.
+
+    ``ttl`` controls the response cache (``None`` disables writes for
+    this call; reads still happen unless ``use_cache=False``).
+    """
+    from library._core.llm.retry import with_retry
+    from library._core.obs import get_collector, trace_event
+    from library._core.fetch import http_cache
+
+    metrics = get_collector()
     url = _base_url() + path
     if params:
         url += '?' + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers=_headers())
+
+    key = _cache_key(path, params) if use_cache else ''
+
+    # ── Cache read ─────────────────────────────────────────────────────────
+    if key:
+        cm = _cache_cm()
+        if cm is not None:
+            hit, value = False, None
+            try:
+                with cm as conn:
+                    hit, value = http_cache.get(conn, key)
+            except Exception as exc:  # pragma: no cover
+                log.debug('cache read failed: %s', exc)
+            if hit:
+                metrics.incr('kalshi.cache_hit', tags={'path': path})
+                trace_event('kalshi.call', path=path, cache='hit', ok=True)
+                return value
+
+    if key:
+        metrics.incr('kalshi.cache_miss', tags={'path': path})
+
+    # ── Rate-limit + HTTP ──────────────────────────────────────────────────
+    waited = _LIMITER.acquire(1)
+    if waited > 0:
+        metrics.observe('kalshi.rate_limit_wait_ms', waited * 1000.0)
+
+    def _do_request():
+        req = urllib.request.Request(url, headers=_headers())
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read().decode('utf-8')
+                return _json.loads(raw)
+        except urllib.error.HTTPError as exc:
+            body = ''
+            try:
+                body = exc.read().decode('utf-8', errors='replace')[:512]
+            except Exception:
+                pass
+            raise _HTTPStatusError(exc.code, url, body) from exc
+
+    metrics.incr('kalshi.call_attempt', tags={'path': path})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return _json.loads(resp.read().decode('utf-8'))
+        with metrics.timed('kalshi.latency_ms', tags={'path': path}):
+            data = with_retry(
+                _do_request,
+                max_attempts=int(os.environ.get('KALSHI_MAX_ATTEMPTS', '3')),
+                base_delay=float(os.environ.get('KALSHI_RETRY_BASE', '1.0')),
+                on_retry=lambda n, e, d: metrics.incr(
+                    'kalshi.retry', tags={'path': path}),
+            )
+    except _HTTPStatusError as exc:
+        log.warning('Kalshi %s failed: HTTP %s (%s)',
+                    path, exc.status_code, exc.body[:120])
+        metrics.incr('kalshi.call_err',
+                     tags={'path': path, 'status': str(exc.status_code)})
+        trace_event('kalshi.call', path=path, ok=False,
+                    status=exc.status_code)
+        return None
     except Exception as exc:
         log.warning('Kalshi API error [%s]: %s', path, exc)
+        metrics.incr('kalshi.call_err', tags={'path': path})
+        trace_event('kalshi.call', path=path, ok=False, error=str(exc))
         return None
+
+    metrics.incr('kalshi.call_ok', tags={'path': path})
+    trace_event('kalshi.call', path=path, ok=True, cache='miss')
+
+    # ── Cache write ───────────────────────────────────────────────────────
+    if key and ttl and ttl > 0 and data is not None:
+        cm = _cache_cm()
+        if cm is not None:
+            try:
+                with cm as conn:
+                    http_cache.put(conn, key, data, ttl_seconds=ttl)
+            except Exception as exc:  # pragma: no cover
+                log.debug('cache write failed: %s', exc)
+    return data
 
 
 def get_market(ticker: str) -> dict:

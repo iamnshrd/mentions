@@ -3,7 +3,14 @@
 Combines:
 1. Live market data from Kalshi (via fetch layer)
 2. Cached analysis from DB
-3. FTS search over transcript corpus
+3. **Hybrid** retrieval (BM25 + optional embeddings + MMR + token budget)
+   over the transcript corpus, via
+   :mod:`library._core.retrieve.hybrid`.
+
+This module is the integration layer between the runtime orchestrator
+and the retrieval backends; keep policy (what to fetch, token caps,
+speaker biases) here, keep mechanics (ranking, reranking) in
+``library._core.retrieve``.
 """
 from __future__ import annotations
 
@@ -65,27 +72,44 @@ def retrieve_market_data(frame: dict) -> dict:
 
 @timed('retrieve_transcripts')
 def retrieve_transcripts(frame: dict) -> list[dict]:
-    """FTS search over the transcript corpus.
+    """Hybrid retrieval over the transcript corpus.
 
-    Returns a list of relevant transcript chunk dicts.
+    BM25 + (optional) semantic rerank + MMR diversity + token budget.
+    Returns a list of chunk dicts shaped like the v0.1 output
+    (``id``/``text``/``speaker``/``section``/``event``/``event_date``)
+    plus extra score fields (``score_bm25``, ``score_semantic``,
+    ``score_final``) so downstream telemetry can see what happened.
     """
     if not frame.get('needs_transcript', False):
         return []
 
     query = frame.get('query', '')
-    fts = fts_query(query)
-    if not fts:
+    if not query:
         return []
 
     limit = get_threshold('fts_chunk_limit', 5)
+    token_budget = get_threshold('transcript_token_budget', 2000)
 
     try:
-        from library._core.kb.query import query_transcripts
-        chunks = query_transcripts(fts, limit=limit)
-        log.debug('transcript FTS returned %d chunks', len(chunks))
-        return chunks
+        from library._core.retrieve.hybrid import hybrid_retrieve
+        hits = hybrid_retrieve(
+            query,
+            limit=limit,
+            token_budget=token_budget,
+            speaker=frame.get('speaker', '') or '',
+        )
+        log.debug('hybrid_retrieve returned %d chunks (tokens=%d)',
+                  len(hits), sum(h.token_count or 0 for h in hits))
+        # Shape for backward compatibility with callers that expect dicts
+        # with an `id` key — alias chunk_id → id.
+        out = []
+        for h in hits:
+            d = h.as_dict()
+            d['id'] = d['chunk_id']
+            out.append(d)
+        return out
     except Exception as exc:
-        log.warning('Transcript FTS failed: %s', exc)
+        log.warning('Transcript hybrid retrieval failed: %s', exc)
         return []
 
 
@@ -171,12 +195,16 @@ def retrieve_by_ticker(ticker: str, speaker: str = '') -> dict:
     search_term = speaker or ticker
     if search_term:
         try:
-            from library._core.kb.query import query_transcripts
-            fts = fts_query(search_term)
-            if fts:
-                limit = get_threshold('fts_chunk_limit', 8)
-                transcripts = query_transcripts(fts, limit=limit,
-                                                speaker=speaker or None)
+            from library._core.retrieve.hybrid import hybrid_retrieve
+            limit = get_threshold('fts_chunk_limit', 8)
+            budget = get_threshold('transcript_token_budget', 2500)
+            hits = hybrid_retrieve(
+                search_term,
+                limit=limit,
+                token_budget=budget,
+                speaker=speaker or '',
+            )
+            transcripts = [{**h.as_dict(), 'id': h.chunk_id} for h in hits]
         except Exception as exc:
             log.debug('Transcript fetch failed: %s', exc)
 

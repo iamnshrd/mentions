@@ -6,9 +6,16 @@ All logic is rule-based (no LLM). Computes:
   - Speaker tendency contribution
   - Invalidation conditions
   - Scaling-out plan
-  - Sizing recommendation
+  - Sizing recommendation (fractional-Kelly from v0.13)
 
 Thresholds are read from ``library/thresholds.json``.
+
+v0.13: sizing is now derived from :func:`library._core.analysis.
+probability.kelly_fraction` when a subjective probability ``p`` is
+available. The legacy 3×3 ``(confidence, difficulty)`` lookup table
+is kept as a fallback when the caller only has a label. The output
+dict carries ``sizing_multiplier`` (fractional-Kelly result) plus
+``p_edge`` (p − q) for explicit edge reporting.
 """
 from __future__ import annotations
 
@@ -16,6 +23,10 @@ import logging
 import re
 
 from library.utils import get_threshold
+
+from library._core.analysis.probability import (
+    clamp01, kelly_fraction, p_from_label,
+)
 
 log = logging.getLogger('mentions')
 
@@ -56,24 +67,18 @@ _SCALING_PLAN: dict[str, str] = {
     ),
 }
 
-# Sizing multipliers by (confidence, difficulty)
-_SIZING: dict[tuple[str, str], tuple[float, str]] = {
-    ('high',   'easy'):   (1.00, 'Full size — high confidence, clear edge.'),
-    ('high',   'medium'): (0.75, '75% size — good confidence, moderate complexity.'),
-    ('high',   'hard'):   (0.50, '50% size — high confidence but coin-flip market; limit exposure.'),
-    ('medium', 'easy'):   (0.75, '75% size — moderate confidence, favourable setup.'),
-    ('medium', 'medium'): (0.50, 'Half size — moderate confidence and complexity.'),
-    ('medium', 'hard'):   (0.25, '25% size — borderline edge; small bet only.'),
-    ('low',    'easy'):   (0.50, 'Half size — low confidence despite easy setup; caution warranted.'),
-    ('low',    'medium'): (0.25, '25% size — weak edge; reduce exposure significantly.'),
-    ('low',    'hard'):   (0.00, 'Skip — low confidence + coin-flip = no edge.'),
-}
+# NOTE: the pre-v0.13 3×3 (confidence, difficulty) sizing table has been
+# removed. Sizing is now Kelly-driven via
+# :func:`library._core.analysis.probability.kelly_fraction`; the
+# ``kelly_cap`` and ``kelly_fraction`` thresholds tune the conservatism.
 
 
 def compute_trade_params(market_data: dict,
                           speaker_tendency: dict,
                           confidence: str = 'medium',
-                          event_context: dict | None = None) -> dict:
+                          event_context: dict | None = None,
+                          *,
+                          p_yes: float | None = None) -> dict:
     """Compute rule-based trade parameters for a speaker event market.
 
     Parameters
@@ -83,18 +88,27 @@ def compute_trade_params(market_data: dict,
     speaker_tendency:
         Dict from ``speaker_extract.analyse_speaker_tendency()``.
     confidence:
-        Overall analysis confidence: 'high' | 'medium' | 'low'.
+        Overall analysis confidence: ``'high' | 'medium' | 'low'``.
+        Used only when *p_yes* is not supplied (fallback).
     event_context:
         Optional dict from ``event_context.analyze_event_context()``.
+    p_yes:
+        Subjective probability of YES resolution, in [0, 1]. When
+        supplied, sizing is computed via fractional Kelly against
+        the market-implied price. When ``None``, falls back to the
+        legacy ``confidence × difficulty`` lookup.
 
     Returns
     -------
-    dict with all trade parameters.
+    dict with all trade parameters, including ``p_edge`` and
+    ``sizing_method`` ('kelly' | 'lookup') so the caller knows which
+    path produced the size.
     """
     _load_thresholds()
     event_context = event_context or {}
 
-    yes_price = _get_yes_price(market_data)
+    yes_price = _get_yes_price(market_data)                # 0..100 (cents)
+    q = yes_price / 100.0                                  # implied p
     rules     = market_data.get('rules_primary', market_data.get('rules', ''))
     title     = market_data.get('title', '')
     close     = market_data.get('close_time', market_data.get('expiration_time', ''))
@@ -103,10 +117,27 @@ def compute_trade_params(market_data: dict,
     difficulty, diff_factors = _assess_difficulty(yes_price, speaker_tendency, event_context)
     invalidation  = _build_invalidation(market_data, speaker_tendency, event_context)
     scaling_out   = _SCALING_PLAN.get(difficulty, _SCALING_PLAN['medium'])
-    sizing_mult, sizing_note = _SIZING.get(
-        (confidence, difficulty),
-        (0.25, 'Conservative sizing — confidence/difficulty combination not in standard table.')
-    )
+
+    # ── Sizing ────────────────────────────────────────────────────────────
+    if p_yes is not None:
+        p = clamp01(p_yes)
+        cap = float(get_threshold('kelly_cap', 0.25))
+        frac = float(get_threshold('kelly_fraction', 0.25))
+        sizing_mult = kelly_fraction(p=p, q=q, fractional=frac, cap=cap)
+        p_edge = p - q
+        sizing_method = 'kelly'
+        sizing_note = _kelly_note(sizing_mult, p_edge, p, q)
+    else:
+        # Legacy fallback: compose p from the label and run the same Kelly.
+        # This keeps the number path unified — we just degrade gracefully
+        # when the caller only has a coarse label.
+        p = p_from_label(confidence)
+        cap = float(get_threshold('kelly_cap', 0.25))
+        frac = float(get_threshold('kelly_fraction', 0.25))
+        sizing_mult = kelly_fraction(p=p, q=q, fractional=frac, cap=cap)
+        p_edge = p - q
+        sizing_method = 'kelly_from_label'
+        sizing_note = _kelly_note(sizing_mult, p_edge, p, q)
 
     return {
         'win_condition':      win_condition,
@@ -114,9 +145,28 @@ def compute_trade_params(market_data: dict,
         'difficulty_factors': diff_factors,
         'invalidation':       invalidation,
         'scaling_out':        scaling_out,
-        'sizing_multiplier':  sizing_mult,
+        'p_yes':              round(p, 4),
+        'q_market':           round(q, 4),
+        'p_edge':             round(p_edge, 4),
+        'sizing_multiplier':  round(sizing_mult, 4),
+        'sizing_method':      sizing_method,
         'sizing_note':        sizing_note,
     }
+
+
+def _kelly_note(size: float, edge: float, p: float, q: float) -> str:
+    """Build a human-readable sizing note from the Kelly result."""
+    if size <= 0.0:
+        if edge <= 0:
+            return (
+                f'Skip — no positive edge (subjective p={p:.2f} ≤ market q={q:.2f}).'
+            )
+        return f'Skip — edge {edge:+.3f} too small after fractional-Kelly cap.'
+    pct = size * 100
+    return (
+        f'Fractional-Kelly size {pct:.1f}% of bankroll '
+        f'(edge {edge:+.3f}; p={p:.2f}, q={q:.2f}).'
+    )
 
 
 # ---------------------------------------------------------------------------

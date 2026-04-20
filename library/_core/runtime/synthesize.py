@@ -32,6 +32,11 @@ def synthesize(query: str, frame: dict, bundle: dict) -> dict:
     from library._core.analysis.signal import assess_signal
     from library._core.analysis.speaker import extract_speaker_context
     from library._core.analysis.reasoning import build_reasoning_chain
+    from library._core.analysis.anti_patterns import (
+        check_anti_patterns, apply_to_p_signal,
+    )
+    from library._core.analysis.evidence_conflict import detect_conflict
+    from library._core.analysis.regime import detect_regime
 
     market = bundle.get('market', {})
     transcripts = bundle.get('transcripts', [])
@@ -39,6 +44,48 @@ def synthesize(query: str, frame: dict, bundle: dict) -> dict:
 
     market_summary = analyze_market(market, frame)
     signal = assess_signal(market, frame)
+
+    # v0.14.5: auto-classify regime so downstream record_application
+    # / record_speaker_application calls can tag the Beta update
+    # without the caller hand-labelling context.
+    regime = detect_regime(bundle)
+
+    # v0.13: fold anti-patterns / crowd mistakes / dispute patterns
+    # into p_signal before we derive legacy labels. The bundle carries
+    # doc_ids from retrieve_bundle; check_anti_patterns re-joins the
+    # structured tables and returns warning flags plus down-weight
+    # factor probabilities.
+    warnings = check_anti_patterns(bundle)
+    # v0.13.1: also scan for directional disagreement between
+    # retrieved transcripts and news. This is orthogonal to
+    # anti-patterns (which reads structured knowledge rows); here we
+    # read the raw text content for conflicting stances.
+    conflict = detect_conflict(bundle)
+    warnings['conflict'] = conflict
+    if conflict.get('conflicted'):
+        warnings.setdefault('flags', []).append(conflict['flag'])
+        warnings.setdefault('factor_ps', {})['evidence_conflict'] = (
+            conflict['factor_p']
+        )
+        warnings['any_triggered'] = True
+
+    if warnings['any_triggered'] and signal.get('p_signal') is not None:
+        # Both anti-patterns and evidence-conflict contribute through
+        # the same ``warnings['factor_ps']`` dict, so one call folds
+        # everything at once. The separate
+        # ``apply_conflict_to_p_signal`` helper is kept for callers who
+        # only want the conflict contribution.
+        adjusted = apply_to_p_signal(signal['p_signal'], warnings)
+        signal['p_signal_pre_warnings'] = signal['p_signal']
+        signal['p_signal'] = round(adjusted, 4)
+        # Re-derive verdict / strength from the new p_signal.
+        from library._core.analysis.signal import _derive_verdict
+        verdict, strength = _derive_verdict(adjusted)
+        signal['verdict'] = verdict
+        signal['signal_strength'] = strength
+        signal['score'] = round(adjusted * 4.0, 2)
+        signal.setdefault('factor_ps', {}).update(warnings['factor_ps'])
+
     transcript_context = extract_speaker_context(transcripts, query)
     reasoning = build_reasoning_chain(
         query=query,
@@ -55,6 +102,8 @@ def synthesize(query: str, frame: dict, bundle: dict) -> dict:
     return {
         'market_summary': market_summary,
         'signal_assessment': signal,
+        'warnings': warnings,
+        'regime': regime,
         'reasoning_chain': reasoning,
         'transcript_context': transcript_context,
         'news_context': _summarize_news(news),

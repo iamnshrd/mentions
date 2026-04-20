@@ -1,0 +1,29 @@
+# Runtime dependencies for Mentions agent.
+# Pinned to known-good versions; bump deliberately and re-run eval.
+
+# --- Core (always required) ---
+httpx==0.27.2
+
+# --- Tokenization (chunking v2) ---
+tiktoken==0.7.0
+
+# --- PDF ingestion (replaces pdftotext subprocess on Windows) ---
+pypdf==4.3.1
+
+# --- Fuzzy matching (ticker resolution, speaker normalization) ---
+rapidfuzz==3.9.6
+
+# --- Test & dev ---
+pytest==8.3.3
+pytest-cov==5.0.0
+ruff==0.6.9
+
+# --- Phase 3 (hybrid retrieval) — install on demand ---
+# sentence-transformers==3.1.1
+# numpy==1.26.4
+
+# --- Phase 4 (LLM intent classifier + extraction) — install on demand ---
+# Set ANTHROPIC_API_KEY in the environment to activate AnthropicClient;
+# otherwise default_client() returns NullClient and the rule-based
+# fallback is used.
+# anthropic==0.37.1

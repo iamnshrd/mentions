@@ -57,23 +57,43 @@ def select_frame(query: str, user_id: str = 'default',
                  store: StateStore | None = None) -> dict:
     """Return an analysis frame dict for the given query.
 
+    Uses the LLM intent classifier when available (see
+    :func:`library._core.intent.classify_intent`); falls back to the
+    keyword-based :func:`infer_route` when the classifier is a no-op.
+    Extra fields carried through when the LLM is active:
+    ``intent``, ``intent_confidence``, ``intent_source``, ``entities``,
+    ``speaker`` (from entities.speaker, promoted for retrieve layer).
+
     Returns::
 
         {
-            'route': str,          # e.g. 'price-movement'
-            'category': str,       # e.g. 'crypto'
-            'mode': str,           # 'quick' | 'deep'
-            'voice_bias': str,     # from route
+            'route': str,
+            'category': str,
+            'mode': str,
+            'voice_bias': str,
             'needs_transcript': bool,
             'query': str,
+            # new in v0.5 (phase 4):
+            'intent': str,
+            'intent_confidence': float,
+            'intent_source': 'llm' | 'rules',
+            'entities': dict,
+            'speaker': str,
         }
     """
     store = store or get_default_store()
 
-    route = infer_route(query)
+    # Intent classification (LLM preferred, rules fallback).
+    from library._core.intent import classify_intent
+    intent_result = classify_intent(query)
+
+    route = intent_result.route or infer_route(query)
     category = _infer_category(query)
     voice_bias = route_voice_bias(route) or 'analytical'
     needs_transcript = _needs_transcript_search(route, query)
+    # A detected speaker entity always warrants transcript search.
+    if intent_result.entities.get('speaker'):
+        needs_transcript = True
 
     q = query.lower()
     # Deep mode: explicit depth signals or macro/context routes
@@ -94,8 +114,16 @@ def select_frame(query: str, user_id: str = 'default',
         'voice_bias': voice_bias,
         'needs_transcript': needs_transcript,
         'query': query,
+        'intent':            intent_result.intent,
+        'intent_confidence': intent_result.confidence,
+        'intent_source':     intent_result.source,
+        'entities':          intent_result.entities,
+        'speaker':           intent_result.entities.get('speaker', ''),
     }
 
-    log.debug('frame selected: route=%s category=%s mode=%s transcript=%s',
-              route, category, mode, needs_transcript)
+    log.debug('frame selected: route=%s category=%s mode=%s transcript=%s '
+              'intent=%s source=%s conf=%.2f',
+              route, category, mode, needs_transcript,
+              intent_result.intent, intent_result.source,
+              intent_result.confidence)
     return frame
