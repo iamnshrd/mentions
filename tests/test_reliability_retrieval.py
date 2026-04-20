@@ -10,9 +10,10 @@ import sqlite3
 
 import pytest
 
-from library._core.retrieve.hybrid import RetrievalHit
-from library._core.retrieve.reliability import (
-    _speaker_weight, apply_weights, speaker_weights,
+from mentions_domain.retrieval import RetrievalHit
+from mentions_domain.retrieval.reliability import speaker_weight
+from agents.mentions.services.retrieval.reliability import (
+    apply_weights, speaker_weights,
 )
 
 
@@ -20,31 +21,31 @@ from library._core.retrieve.reliability import (
 
 class TestSpeakerWeight:
     def test_uniform_prior_no_history_is_neutral(self):
-        assert _speaker_weight(1.0, 1.0, n_apps=0) == 1.0
-        assert _speaker_weight(1.0, 1.0, n_apps=2) == 1.0
+        assert speaker_weight(1.0, 1.0, n_apps=0) == 1.0
+        assert speaker_weight(1.0, 1.0, n_apps=2) == 1.0
 
     def test_missing_values_neutral(self):
-        assert _speaker_weight(None, None, n_apps=10) == 1.0
+        assert speaker_weight(None, None, n_apps=10) == 1.0
 
     def test_good_speaker_boosted(self):
         # 9 wins, 0 losses → α=10, β=1, p=10/11 ≈ 0.91, weight ≈ 1.41
-        w = _speaker_weight(10.0, 1.0, n_apps=9)
+        w = speaker_weight(10.0, 1.0, n_apps=9)
         assert 1.35 < w <= 1.5
 
     def test_bad_speaker_penalised(self):
         # 0 wins, 9 losses → α=1, β=10, p≈0.09, weight ≈ 0.59
-        w = _speaker_weight(1.0, 10.0, n_apps=9)
+        w = speaker_weight(1.0, 10.0, n_apps=9)
         assert 0.5 <= w < 0.65
 
     def test_bounded_in_half_to_onehalf(self):
         # Extreme α with huge β still yields p ∈ [0,1] → weight ∈ [0.5, 1.5]
         for a, b in [(1.0, 1000.0), (1000.0, 1.0), (500.0, 500.0)]:
-            w = _speaker_weight(a, b, n_apps=10)
+            w = speaker_weight(a, b, n_apps=10)
             assert 0.5 <= w <= 1.5
 
     def test_respects_min_applications(self):
         # 2 wins, 0 losses but n=2 < default min=3 → neutral
-        assert _speaker_weight(3.0, 1.0, n_apps=2) == 1.0
+        assert speaker_weight(3.0, 1.0, n_apps=2) == 1.0
 
 
 # ── DB-backed query ───────────────────────────────────────────────────────
@@ -193,7 +194,7 @@ class TestPipelineIntegration:
                 )
             conn.commit()
 
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         hits = hybrid_retrieve('inflation expectations', limit=5)
         assert len(hits) == 2
         # Good speaker's chunk should come first.
@@ -225,7 +226,7 @@ class TestPipelineIntegration:
             )
             conn.commit()
 
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         hits = hybrid_retrieve('inflation expectations', limit=5,
                                reliability_weight=False)
         assert hits

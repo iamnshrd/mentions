@@ -1,8 +1,6 @@
 """StateStore protocol and canonical key constants for the OpenClaw base layer.
 
 Modules should import keys from here rather than using raw strings.
-``library/state_store.py`` is kept as a legacy compatibility shim that
-re-exports everything from this module.
 """
 from __future__ import annotations
 

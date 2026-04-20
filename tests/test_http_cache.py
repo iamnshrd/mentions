@@ -5,7 +5,7 @@ import sqlite3
 
 import pytest
 
-from library._core.fetch import http_cache
+from mentions_core.base.net import http_cache
 
 
 class FakeClock:

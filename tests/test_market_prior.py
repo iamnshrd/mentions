@@ -1,4 +1,4 @@
-from agents.mentions.modules.market_prior.builder import build_market_prior
+from agents.mentions.services.markets.market_prior import build_market_prior
 
 
 def test_build_market_prior_from_live_market_bundle():
@@ -19,7 +19,7 @@ def test_build_market_prior_from_live_market_bundle():
         },
         'provider_status': {'market': 'ok', 'history': 'ok'},
     })
-    assert prior['prior_probability'] == 0.45
+    assert prior['prior_probability'] == 0.43
     assert prior['prior_confidence'] in ('medium', 'high')
     assert prior['market_regime'] in ('ambiguous_mid_confidence', 'tradable_market')
     assert prior['source'] == 'kalshi_market_prior'

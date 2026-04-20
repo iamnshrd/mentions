@@ -1,4 +1,4 @@
-from agents.mentions.module_contracts import ensure_dict, ensure_list, normalize_confidence, normalize_status
+from mentions_domain.normalize import ensure_dict, ensure_list, normalize_confidence, normalize_status
 
 
 def test_normalize_status_and_confidence():

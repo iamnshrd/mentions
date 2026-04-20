@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from library._core.eval.resolution_latency import (
+from agents.mentions.eval.resolution_latency import (
     case_latency_days, heuristic_latency_stats, set_case_outcome,
 )
 

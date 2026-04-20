@@ -1,11 +1,11 @@
 ---
 name: pmt-mentions-trader
-description: "Legacy PMT wrapper skill. Use references for domain heuristics, but execute analysis through the Mentions analysis capability."
+description: "PMT-oriented market playbook skill. Use references for domain heuristics, but execute analysis through the Mentions analysis capability."
 ---
 
 # PMT Mentions Trader
 
-This is a legacy compatibility wrapper. The executable path is the `analysis` capability.
+This skill packages PMT-style market heuristics and reference material. The executable path is the `analysis` capability.
 
 ## Capability call
 

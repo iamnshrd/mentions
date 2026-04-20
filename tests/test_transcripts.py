@@ -20,6 +20,6 @@ def test_ingest_auto_dry_run_with_txt(tmp_path, monkeypatch):
 
 
 def test_transcript_search_empty_short_query():
-    from agents.mentions.capabilities.transcripts.api import search_transcripts
+    from agents.mentions.interfaces.capabilities.transcripts.api import search_transcripts
 
     assert search_transcripts('ab') == []

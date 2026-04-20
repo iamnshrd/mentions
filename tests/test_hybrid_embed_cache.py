@@ -47,7 +47,7 @@ def corpus(tmp_db):
 class TestEmbedCacheReuse:
     def test_second_call_encodes_only_query(self, corpus, tmp_db):
         """Cold run encodes query + all candidates; warm run encodes query only."""
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
 
         backend = _CountingEmbed()
         hits1 = hybrid_retrieve('kalshi pricing', limit=5,
@@ -67,8 +67,8 @@ class TestEmbedCacheReuse:
 
     def test_new_chunks_are_encoded_incrementally(self, corpus, tmp_db):
         """Adding a chunk after the warmup forces only that chunk to re-encode."""
-        from library._core.retrieve.hybrid import hybrid_retrieve
-        from library._core.kb.fts_sync import sync_document
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
+        from agents.mentions.storage.knowledge.fts_sync import sync_document
 
         backend = _CountingEmbed()
         hybrid_retrieve('kalshi', limit=10, candidate_pool=20,
@@ -100,7 +100,7 @@ class TestEmbedCacheReuse:
 
     def test_different_models_do_not_share_cache(self, corpus, tmp_db):
         """Switching model_name forces a fresh encode pass."""
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
 
         b1 = _CountingEmbed()
         b1.model_name = 'model-A'

@@ -1,4 +1,4 @@
-from agents.mentions.modules.pmt_selector.selector import select_pmt_evidence
+from agents.mentions.services.markets.pmt_selector import select_pmt_evidence
 
 
 def test_select_pmt_evidence_returns_compact_selected_block():

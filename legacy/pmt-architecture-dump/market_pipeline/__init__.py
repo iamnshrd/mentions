@@ -1,1 +1,0 @@
-"""Market analysis pipeline package."""

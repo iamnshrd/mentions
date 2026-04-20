@@ -19,6 +19,46 @@ def _print_payload(payload):
         print(payload)
 
 
+def _cost_breakdown_from_counters(counter_rows):
+    """Aggregate token + cost counters by model."""
+    by_model: dict[str, dict[str, float | int]] = {}
+
+    def _tag_model(tag_str):
+        for part in (tag_str or '').split('|'):
+            if part.startswith('model='):
+                return part[len('model='):]
+        return ''
+
+    mapping = {
+        'llm.input_tokens': 'input',
+        'llm.output_tokens': 'output',
+        'llm.cache_read_tokens': 'cache_read',
+        'llm.cache_create_tokens': 'cache_write',
+    }
+
+    for row in counter_rows or []:
+        name = row.get('name', '')
+        model = _tag_model(row.get('tags', ''))
+        if not model:
+            continue
+        bucket = by_model.setdefault(model, {
+            'input': 0,
+            'output': 0,
+            'cache_read': 0,
+            'cache_write': 0,
+            'cost_usd': 0.0,
+        })
+        if name in mapping:
+            bucket[mapping[name]] += int(row.get('value', 0) or 0)
+        elif name == 'llm.cost_micro_usd':
+            bucket['cost_usd'] += float(row.get('value', 0) or 0) / 1_000_000.0
+
+    total_cost = round(sum(float(item['cost_usd']) for item in by_model.values()), 6)
+    for item in by_model.values():
+        item['cost_usd'] = round(float(item['cost_usd']), 6)
+    return {'by_model': by_model, 'total_cost': total_cost}
+
+
 def cmd_run(args):
     pack = get_pack(args.pack)
     _print_payload(pack.run(args.query, user_id=args.user_id))
@@ -63,7 +103,7 @@ def cmd_packs(_args):
 
 
 def cmd_health(_args):
-    from agents.mentions.runtime.validation import runtime_validation_report
+    from agents.mentions.workflows.validation import runtime_validation_report
     _print_payload(runtime_validation_report())
 
 

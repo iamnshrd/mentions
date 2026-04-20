@@ -1,4 +1,4 @@
-from agents.mentions.modules.output_profiles.profiles import build_output_profiles
+from agents.mentions.presentation.profile_renderers import build_output_profiles
 
 
 def test_build_output_profiles_returns_three_render_modes():
@@ -14,8 +14,8 @@ def test_build_output_profiles_returns_three_render_modes():
         },
     )
     assert 'Тезис:' in profiles['telegram_brief']
-    assert profiles['trade_memo']['thesis'] == 'Ограниченный сдвиг over market prior.'
-    assert profiles['investor_note'].startswith('Investor note:')
+    assert profiles['trade_memo']['thesis'] == 'Bounded move over рыночная базовая линия.'
+    assert profiles['investor_note'].startswith('Инвесторская заметка:')
 
 
 def test_build_output_profiles_humanizes_no_trade_reasoning():
@@ -30,5 +30,26 @@ def test_build_output_profiles_humanizes_no_trade_reasoning():
             'recommended_action_v2': 'Пока no-trade / monitor: апдейт не оправдан (no_text_support, high_contradiction_load).',
         },
     )
-    assert 'Пока no-trade' in profiles['telegram_brief']
-    assert 'апдейт не оправдан' in profiles['trade_memo']['recommended_action']
+    assert 'Base market stays near 0.12.' in profiles['telegram_brief']
+    assert profiles['trade_memo']['recommended_action'] == ''
+
+
+def test_build_output_profiles_uses_analysis_card_when_present():
+    profiles = build_output_profiles(
+        'Will Trump mention Iran?',
+        {
+            'analysis_card': {
+                'thesis': 'Core event read still looks bounded.',
+                'fair_value_view': 'Fair value around 0.18.',
+                'evidence': ['text support is moderate', 'coverage: news, market'],
+                'uncertainty': 'Transcript support still thin.',
+                'risk': 'Fresh reporting contradicts setup',
+                'next_check': 'Need direct transcript confirmation',
+                'action': 'Can watch as a limited setup.',
+            },
+        },
+    )
+    assert 'Core event read still looks bounded.' in profiles['telegram_brief']
+    assert profiles['trade_memo']['thesis'] == 'Core event read still looks bounded.'
+    assert profiles['trade_memo']['invalidation'] == 'Need direct transcript confirmation'
+    assert profiles['investor_note'].startswith('Инвесторская заметка:')

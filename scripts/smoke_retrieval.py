@@ -6,7 +6,7 @@ import json
 import os
 import sys
 
-from agents.mentions.runtime.retrieve import retrieve_by_ticker, retrieve_market_data
+from agents.mentions.workflows.retrieve import retrieve_by_ticker, retrieve_market_data
 
 
 def main() -> int:

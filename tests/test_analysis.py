@@ -1,4 +1,4 @@
-from agents.mentions.capabilities.analysis.api import run_query
+from agents.mentions.interfaces.capabilities.analysis.api import run_query
 
 
 def test_analysis_query_returns_wording_wrapper():

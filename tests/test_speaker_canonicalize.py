@@ -6,7 +6,7 @@ import sqlite3
 
 import pytest
 
-from library._core.analysis.speaker_canonicalize import (
+from agents.mentions.services.speakers.canonicalize import (
     canonicalize, canonicalize_batch, invalidate_cache,
 )
 

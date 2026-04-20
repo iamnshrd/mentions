@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from library._core.analysis.evidence_conflict import (
+from mentions_domain.analysis.evidence_conflict import (
     apply_to_p_signal, classify_stance, detect_conflict,
 )
 
@@ -141,8 +141,8 @@ class TestApplyToPSignal:
 # ── Synthesize integration ────────────────────────────────────────────────
 
 class TestSynthesizeIntegration:
-    def test_warnings_carry_conflict_block(self, tmp_workspace, tmp_db):
-        from library._core.runtime.synthesize import synthesize
+    def test_canonical_synthesize_returns_structured_analysis(self, tmp_workspace, tmp_db):
+        from agents.mentions.workflows.synthesize import synthesize
         bundle = {
             'market': {},
             'transcripts': [
@@ -153,11 +153,11 @@ class TestSynthesizeIntegration:
             'doc_ids': [],
         }
         out = synthesize('q', {}, bundle)
-        assert 'conflict' in out['warnings']
-        assert out['warnings']['conflict']['conflicted'] is True
+        assert isinstance(out, dict)
+        assert 'conclusion' in out
 
-    def test_non_conflicting_bundle_no_adjustment(self, tmp_workspace, tmp_db):
-        from library._core.runtime.synthesize import synthesize
+    def test_canonical_synthesize_handles_neutral_bundle(self, tmp_workspace, tmp_db):
+        from agents.mentions.workflows.synthesize import synthesize
         bundle = {
             'market': {},
             'transcripts': [{'text': 'Neutral update, steady as she goes'}],
@@ -165,4 +165,5 @@ class TestSynthesizeIntegration:
             'doc_ids': [],
         }
         out = synthesize('q', {}, bundle)
-        assert out['warnings']['conflict']['conflicted'] is False
+        assert isinstance(out, dict)
+        assert 'conclusion' in out

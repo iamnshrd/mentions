@@ -1,7 +1,7 @@
 """Tests for Kelly-based trade parameter computation (v0.13)."""
 from __future__ import annotations
 
-from library._core.analysis.trade_params import compute_trade_params
+from agents.mentions.services.markets.trade_params import compute_trade_params
 
 
 def _market(yes_price_cents: float, **extra) -> dict:

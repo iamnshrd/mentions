@@ -1,4 +1,4 @@
-from agents.mentions.modules.market_resolution import build_search_queries, merge_search_results
+from agents.mentions.services.markets.resolution import build_search_queries, merge_search_results
 
 
 def test_build_search_queries_creates_reduced_variants():

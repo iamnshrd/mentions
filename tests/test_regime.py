@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from library._core.analysis.regime import (
+from mentions_domain.analysis.regime import (
     detect_regime, detect_regime_tags, _parse_iso, _extract_prices,
 )
 

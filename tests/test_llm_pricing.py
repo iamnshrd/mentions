@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from library._core.llm.pricing import PRICING, rates_for, cost_usd
+from mentions_domain.llm.pricing import PRICING, rates_for, cost_usd
 
 
 # ── Unit: pricing ──────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ class TestCostUsd:
 
 class TestCostBreakdown:
     def test_breakdown_buckets_by_model(self):
-        from library.__main__ import _cost_breakdown_from_counters
+        from mentions_core.cli import _cost_breakdown_from_counters
         rows = [
             {'name': 'llm.input_tokens',  'tags': 'model=claude-haiku-4-5', 'value': 1000},
             {'name': 'llm.output_tokens', 'tags': 'model=claude-haiku-4-5', 'value': 500},
@@ -93,12 +93,12 @@ class TestCostBreakdown:
         assert out['total_cost'] == 9.50
 
     def test_breakdown_empty_counters(self):
-        from library.__main__ import _cost_breakdown_from_counters
+        from mentions_core.cli import _cost_breakdown_from_counters
         out = _cost_breakdown_from_counters([])
         assert out == {'by_model': {}, 'total_cost': 0.0}
 
     def test_breakdown_ignores_unrelated_counters(self):
-        from library.__main__ import _cost_breakdown_from_counters
+        from mentions_core.cli import _cost_breakdown_from_counters
         rows = [
             {'name': 'intent.rules_fallback', 'tags': '', 'value': 5},
             {'name': 'llm.input_tokens', 'tags': 'model=claude-haiku-4-5', 'value': 100},

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from library._core.llm.retry import (
+from mentions_domain.llm.retry import (
     is_retryable, with_retry,
     CircuitBreaker, CircuitOpenError,
 )

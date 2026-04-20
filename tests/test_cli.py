@@ -1,5 +1,4 @@
 from mentions_core.cli import main
-from library.__main__ import main as legacy_main
 
 
 def test_cli_lists_packs(capsys):
@@ -16,18 +15,18 @@ def test_cli_wording_rewrite(capsys):
     assert 'Разбор события' in captured.out
 
 
-def test_legacy_cli_run_uses_pack_shim(capsys):
-    code = legacy_main(['run', 'fed rate decision market'])
+def test_cli_run_uses_pack(capsys):
+    code = main(['run', 'mentions', 'fed rate decision market'])
     captured = capsys.readouterr()
     assert code == 0
     assert '"response"' in captured.out
 
 
-def test_legacy_cli_frame_still_works(capsys):
-    code = legacy_main(['frame', 'fed rate decision market'])
+def test_cli_prompt_still_works(capsys):
+    code = main(['prompt', 'mentions', 'fed rate decision market'])
     captured = capsys.readouterr()
     assert code == 0
-    assert '"route"' in captured.out
+    assert '"action"' in captured.out
 
 
 def test_cli_loads_dotenv_from_cwd(tmp_path, monkeypatch, capsys):

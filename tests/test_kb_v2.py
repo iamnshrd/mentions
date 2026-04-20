@@ -52,7 +52,7 @@ def test_v2_extended_columns(tmp_db):
 
 
 def test_schema_version_is_latest(tmp_db):
-    from library._core.kb.migrate import LATEST_VERSION
+    from agents.mentions.storage.knowledge.migrate import LATEST_VERSION
     with sqlite3.connect(tmp_db) as conn:
         v = conn.execute('PRAGMA user_version').fetchone()[0]
     assert v == LATEST_VERSION
@@ -270,7 +270,7 @@ def _make_pmt_fixture(path: Path) -> Path:
 
 def test_pmt_import_small_fixture(tmp_db, tmp_path):
     """End-to-end: import a hand-crafted PMT DB and check counts."""
-    from library._core.kb.import_pmt import import_pmt
+    from agents.mentions.storage.importers.pmt import import_pmt
 
     src = _make_pmt_fixture(tmp_path)
     report = import_pmt(src)
@@ -308,7 +308,7 @@ def test_pmt_import_small_fixture(tmp_db, tmp_path):
 
 
 def test_pmt_import_idempotent(tmp_db, tmp_path):
-    from library._core.kb.import_pmt import import_pmt
+    from agents.mentions.storage.importers.pmt import import_pmt
     src = _make_pmt_fixture(tmp_path)
     import_pmt(src)
     import_pmt(src)  # second run must not duplicate
@@ -325,46 +325,46 @@ def test_pmt_import_idempotent(tmp_db, tmp_path):
 
 @pytest.fixture
 def seeded_db(tmp_db, tmp_path):
-    from library._core.kb.import_pmt import import_pmt
+    from agents.mentions.storage.importers.pmt import import_pmt
     src = _make_pmt_fixture(tmp_path)
     import_pmt(src)
     return tmp_db
 
 
 def test_query_heuristics_finds_by_substring(seeded_db):
-    from library._core.kb.query import query_heuristics
+    from agents.mentions.services.knowledge.query import query_heuristics
     hits = query_heuristics('chair')
     assert hits and 'chair' in hits[0]['heuristic_text'].lower()
 
 
 def test_query_decision_cases_finds_setup(seeded_db):
-    from library._core.kb.query import query_decision_cases
+    from agents.mentions.services.knowledge.query import query_decision_cases
     hits = query_decision_cases('presser')
     assert hits and 'presser' in hits[0]['setup']
 
 
 def test_query_speaker_profile_by_canonical(seeded_db):
-    from library._core.kb.query import query_speaker_profile
+    from agents.mentions.services.knowledge.query import query_speaker_profile
     p = query_speaker_profile('Jerome Powell')
     assert p is not None
     assert p['canonical_name'] == 'Jerome Powell'
 
 
 def test_query_case_context_joins(seeded_db):
-    from library._core.kb.query import query_case_context
+    from agents.mentions.services.knowledge.query import query_case_context
     ctx = query_case_context(1)
     assert ctx['setup'] == 'pre-presser'
     assert ctx['heuristics'] and 'chair' in ctx['heuristics'][0]['heuristic_text'].lower()
 
 
 def test_query_heuristic_evidence(seeded_db):
-    from library._core.kb.query import query_heuristic_evidence
+    from agents.mentions.services.knowledge.query import query_heuristic_evidence
     ev = query_heuristic_evidence(1)
     assert ev and ev[0]['quote_text'].startswith('Powell hints')
 
 
 def test_unified_query_returns_all_slices(seeded_db):
-    from library._core.kb.query import query
+    from agents.mentions.services.knowledge.query import query
     bundle = query('powell')
     assert 'heuristics' in bundle
     assert 'decision_cases' in bundle

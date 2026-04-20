@@ -6,9 +6,9 @@ import sqlite3
 
 import pytest
 
-from library._core.analysis.speaker_canonicalize import invalidate_cache
-from library._core.retrieve.hybrid import RetrievalHit
-from library._core.retrieve import reliability
+from agents.mentions.services.speakers.canonicalize import invalidate_cache
+from mentions_domain.retrieval import RetrievalHit
+from agents.mentions.services.retrieval import reliability
 
 
 @pytest.fixture(autouse=True)

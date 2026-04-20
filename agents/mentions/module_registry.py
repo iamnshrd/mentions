@@ -3,9 +3,13 @@ from __future__ import annotations
 
 from agents.mentions.config import MODULE_BINDINGS
 from agents.mentions.presentation.response_renderer import render_user_response
-from agents.mentions.runtime.frame import select_frame
-from agents.mentions.runtime.retrieve import retrieve_bundle_for_frame, build_retrieval_bundle, retrieve_by_ticker
-from agents.mentions.runtime.synthesize import synthesize
+from agents.mentions.workflows.frame_selection import select_frame
+from agents.mentions.workflows.retrieve import (
+    build_retrieval_bundle,
+    retrieve_bundle_for_frame,
+    retrieve_by_ticker,
+)
+from agents.mentions.workflows.synthesize import synthesize
 from agents.mentions.utils import load_json
 
 

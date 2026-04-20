@@ -10,7 +10,7 @@ def test_mentions_pack_registered():
 
 
 def test_legacy_library_shim_points_to_new_runtime():
-    from library._core.runtime.orchestrator import orchestrate as legacy_orchestrate
-    from agents.mentions.runtime.orchestrator import orchestrate as new_orchestrate
+    from agents.mentions.workflows.orchestrator import orchestrate as legacy_orchestrate
+    from agents.mentions.workflows.orchestrator import orchestrate as new_orchestrate
 
     assert legacy_orchestrate is new_orchestrate

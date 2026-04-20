@@ -6,8 +6,8 @@ import threading
 
 import pytest
 
-from library._core.obs import trace as trace_mod
-from library._core.obs.trace import (
+from mentions_core.base.obs import trace as trace_mod
+from mentions_core.base.obs.trace import (
     new_trace, current_trace, with_trace,
     trace_event, iter_events, events_for_trace, list_traces,
 )
@@ -132,8 +132,8 @@ class TestThreading:
 
 class TestHookIntegration:
     def test_intent_classifier_emits_event(self, trace_path):
-        from library._core.llm import NullClient
-        from library._core.intent.classifier import classify_intent
+        from mentions_domain.llm import NullClient
+        from mentions_domain.intent.classifier import classify_intent
 
         with with_trace('integr'):
             classify_intent('what is btc doing', client=NullClient())

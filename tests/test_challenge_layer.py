@@ -1,4 +1,4 @@
-from agents.mentions.modules.challenge_layer.challenge import build_challenge_block
+from agents.mentions.services.analysis.challenge import build_challenge_block
 
 
 def test_build_challenge_block_exposes_governance_fields():

@@ -1,4 +1,4 @@
-"""Tests for library._core.session.continuity v4 schema.
+"""Tests for continuity v4 schema.
 
 Covers:
   * Default shape includes v4 buckets
@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import pytest
 
-from library._core.session import continuity as C
-from library._core.state_store import KEY_CONTINUITY, KEY_SESSION_STATE
+from mentions_core.base.session import continuity as C
+from mentions_core.base.state_store import KEY_CONTINUITY, KEY_SESSION_STATE
 
 
 _counter = {'n': 0}
@@ -28,7 +28,7 @@ def store(tmp_workspace):
     We construct directly (rather than via get_default_store()) to
     defeat any module-level caching.
     """
-    from library._adapters.fs_store import FileSystemStore
+    from mentions_core.base.adapters.fs_store import FileSystemStore
     return FileSystemStore(tmp_workspace)
 
 
@@ -140,7 +140,7 @@ class TestSummary:
 
 class TestSessionStateV4:
     def test_update_session_carries_intent_fields(self, store, uid):
-        from library._core.session.state import update_session
+        from mentions_core.base.session.state import update_session
         update_session(
             'why is BTC moving?',
             route='price-movement', category='crypto',

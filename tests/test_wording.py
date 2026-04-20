@@ -1,4 +1,4 @@
-from agents.mentions.capabilities.wording.api import check_text
+from agents.mentions.interfaces.capabilities.wording.api import check_text
 
 
 def test_wording_rewrite_event_read():

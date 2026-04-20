@@ -1,4 +1,8 @@
-from agents.mentions.storage.runtime_db import bootstrap_runtime_db, connect_runtime_db
+from agents.mentions.storage.runtime_db import (
+    bootstrap_runtime_db,
+    connect_runtime_db,
+    get_runtime_health,
+)
 
 
 def test_runtime_db_bootstrap(tmp_path):
@@ -11,3 +15,6 @@ def test_runtime_db_bootstrap(tmp_path):
     assert 'news_items' in table_names
     assert 'market_snapshots' in table_names
     assert 'analysis_reports' in table_names
+    health = get_runtime_health(db_path)
+    assert health['status'] == 'ok'
+    assert health['contracts']['transcript_search'] == {}

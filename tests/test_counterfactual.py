@@ -5,7 +5,7 @@ import sqlite3
 
 import pytest
 
-from library._core.eval.counterfactual import (
+from agents.mentions.eval.counterfactual import (
     _wilson_ci, all_heuristic_lifts, heuristic_lift, kill_list,
 )
 

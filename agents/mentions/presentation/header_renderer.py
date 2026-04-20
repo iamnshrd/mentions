@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from agents.mentions.module_contracts import ensure_dict
+from mentions_domain.normalize import ensure_dict
 
 
 def render_header(query: str, analysis_profiles: dict) -> str:

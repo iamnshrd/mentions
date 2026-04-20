@@ -1,4 +1,4 @@
-"""Tests for library._core.extract.pipeline.
+"""Tests for extraction service pipeline.
 
 Covers:
   * extract_from_chunk: empty input, NullClient short-circuit, exception
@@ -19,14 +19,14 @@ import sqlite3
 
 import pytest
 
-from library._core.extract import extract_from_chunk, run_extraction
-from library._core.extract.pipeline import (
+from agents.mentions.services.extraction import extract_from_chunk, run_extraction
+from agents.mentions.services.extraction.pipeline import (
     _clip,
     _norm_heuristic_text,
     _norm_signal_name,
 )
-from library._core.llm import LLMResponse, NullClient
-from library.db import connect
+from mentions_domain.llm import LLMResponse, NullClient
+from agents.mentions.db import connect
 
 
 # ── FakeClient ─────────────────────────────────────────────────────────────

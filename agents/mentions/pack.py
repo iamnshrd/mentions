@@ -4,10 +4,10 @@ from __future__ import annotations
 import json
 import logging
 
-from agents.mentions.capabilities.analysis.service import AnalysisCapabilityService
-from agents.mentions.capabilities.news_context.service import NewsContextCapabilityService
-from agents.mentions.capabilities.transcripts.service import TranscriptsCapabilityService
-from agents.mentions.capabilities.wording.service import WordingCapabilityService
+from agents.mentions.interfaces.capabilities.analysis.service import AnalysisCapabilityService
+from agents.mentions.interfaces.capabilities.news_context.service import NewsContextCapabilityService
+from agents.mentions.interfaces.capabilities.transcripts.service import TranscriptsCapabilityService
+from agents.mentions.interfaces.capabilities.wording.service import WordingCapabilityService
 from agents.mentions.config import MANIFEST
 from mentions_core.base.config import WORKSPACE, get_default_store
 from mentions_core.base.pack_types import CapabilityDescriptor, PackContext, PackManifest
@@ -63,18 +63,18 @@ class MentionsPack:
         }
 
     def run(self, query: str, user_id: str = 'default') -> dict:
-        from agents.mentions.capabilities.analysis.api import run_query
+        from agents.mentions.interfaces.capabilities.analysis.api import run_query
 
         return run_query(query, user_id=user_id)
 
     def prompt(self, query: str, user_id: str = 'default',
                system_only: bool = False) -> dict | str:
-        from agents.mentions.capabilities.analysis.api import build_prompt
+        from agents.mentions.interfaces.capabilities.analysis.api import build_prompt
 
         return build_prompt(query, user_id=user_id, system_only=system_only)
 
     def schedule(self, action: str, **kwargs) -> dict:
-        from agents.mentions.capabilities.analysis.api import run_autonomous_scan
+        from agents.mentions.interfaces.capabilities.analysis.api import run_autonomous_scan
 
         if action != 'run':
             raise SystemExit(f'Unknown schedule action for mentions: {action}')

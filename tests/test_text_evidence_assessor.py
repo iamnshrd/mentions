@@ -1,4 +1,4 @@
-from agents.mentions.modules.text_evidence_assessor.assessor import assess_text_evidence
+from agents.mentions.services.analysis.text_evidence_assessor import assess_text_evidence
 
 
 def test_assess_text_evidence_builds_update_pressure_block():

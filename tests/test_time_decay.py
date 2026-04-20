@@ -7,15 +7,15 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from library._core.analysis.heuristic_learn import (
+from mentions_domain.posteriors.heuristic_learn import (
     decayed_counts as heuristic_decayed_counts,
     record_application, top_confident,
 )
-from library._core.analysis.speaker_learn import (
+from mentions_domain.posteriors.speaker_learn import (
     decayed_counts as speaker_decayed_counts,
     record_speaker_application, top_confident_speakers,
 )
-from library._core.analysis.time_decay import (
+from mentions_domain.posteriors.time_decay import (
     _parse_ts, _weight, decayed_counts_from_rows,
 )
 

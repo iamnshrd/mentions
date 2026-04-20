@@ -1,4 +1,4 @@
-from agents.mentions.modules.workflow_policy.policy import evaluate_workflow_policy
+from agents.mentions.workflows.policy import evaluate_workflow_policy
 
 
 def test_workflow_policy_allows_full_when_inputs_are_strong():

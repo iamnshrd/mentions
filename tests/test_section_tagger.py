@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from library._core.ingest.section_tagger import (
+from agents.mentions.ingest.section_tagger import (
     _looks_like_closing, _looks_like_qa, tag_sections,
 )
 

@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from library._core.eval.harness import (
+from agents.mentions.eval.harness import (
     _brier_score, _log_loss, _reliability_bins, _ece, run_eval,
 )
 

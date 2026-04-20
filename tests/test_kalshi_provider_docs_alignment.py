@@ -1,9 +1,9 @@
-from agents.mentions.modules.kalshi_provider.provider import get_event_bundle, get_history_bundle
+from agents.mentions.providers.kalshi.provider import get_event_bundle, get_history_bundle
 
 
 def test_get_event_bundle_ok(monkeypatch):
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.provider.kalshi_fetch.get_event',
+        'agents.mentions.providers.kalshi.provider.kalshi_client.get_event',
         lambda event_ticker, with_nested_markets=False: {
             'event': {'event_ticker': event_ticker, 'title': 'Test Event'},
             'markets': [{'ticker': 'KXTEST'}],
@@ -25,7 +25,7 @@ def test_get_history_bundle_passes_series_ticker(monkeypatch):
         return [{'end_period_ts': 1}]
 
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.provider.kalshi_fetch.get_history',
+        'agents.mentions.providers.kalshi.provider.kalshi_client.get_history',
         fake_get_history,
     )
     bundle = get_history_bundle('KXTEST', series_ticker='KX', days=14)

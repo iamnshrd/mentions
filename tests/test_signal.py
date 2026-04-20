@@ -1,7 +1,7 @@
 """Tests for the probability-first signal assessor (v0.13)."""
 from __future__ import annotations
 
-from library._core.analysis.signal import assess_signal
+from agents.mentions.services.analysis.signal import assess_signal
 
 
 def _retrieval(*, history=None, market=None):

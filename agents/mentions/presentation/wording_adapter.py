@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from agents.mentions.modules.output_profiles.wording import apply_wording
+from agents.mentions.presentation.output_wording import apply_wording
 
 
 def clean_phrase(text: str) -> str:

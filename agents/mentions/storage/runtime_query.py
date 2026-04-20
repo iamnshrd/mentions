@@ -7,6 +7,7 @@ from pathlib import Path
 log = logging.getLogger('mentions')
 
 from .runtime_db import connect_runtime_db, RUNTIME_DB_PATH
+from .runtime_db import RUNTIME_READ_REQUIREMENTS, validate_runtime_schema
 
 
 def get_recent_market_snapshots(limit: int = 10, path: str | Path | None = None) -> list[dict]:
@@ -88,6 +89,8 @@ def get_recent_analysis_reports(limit: int = 10, path: str | Path | None = None)
 
 def search_transcripts_runtime(query: str = '', speaker: str = '', title_query: str = '', limit: int = 10,
                                path: str | Path | None = None) -> list[dict]:
+    if not _runtime_contract_ready('transcript_search', path):
+        return []
     clauses = []
     params: list = []
     if query:
@@ -122,13 +125,22 @@ def search_transcripts_runtime(query: str = '', speaker: str = '', title_query: 
 
 
 def get_transcript_segments(transcript_id: int, path: str | Path | None = None) -> list[dict]:
+    if not _runtime_contract_ready('transcript_search', path):
+        return []
     with connect_runtime_db(path or RUNTIME_DB_PATH) as conn:
         rows = conn.execute(
             """
             SELECT ts.transcript_id, ts.segment_index, ts.text, ts.start_ts, ts.end_ts, ts.metadata_json,
-                   s.canonical_name AS speaker
+                   s.canonical_name AS speaker,
+                   t.title AS transcript_title,
+                   t.source,
+                   t.source_ref,
+                   t.event_date,
+                   e.title AS event_title
             FROM transcript_segments ts
+            JOIN transcripts t ON t.id = ts.transcript_id
             LEFT JOIN speakers s ON s.id = ts.speaker_id
+            LEFT JOIN events e ON e.id = t.event_id
             WHERE ts.transcript_id = ?
             ORDER BY ts.segment_index ASC
             """,
@@ -144,13 +156,22 @@ def get_transcript_segments(transcript_id: int, path: str | Path | None = None) 
 
 def get_transcript_segment_window(transcript_id: int, segment_index: int, radius: int = 1,
                                  path: str | Path | None = None) -> list[dict]:
+    if not _runtime_contract_ready('transcript_search', path):
+        return []
     with connect_runtime_db(path or RUNTIME_DB_PATH) as conn:
         rows = conn.execute(
             """
             SELECT ts.transcript_id, ts.segment_index, ts.text, ts.start_ts, ts.end_ts, ts.metadata_json,
-                   s.canonical_name AS speaker
+                   s.canonical_name AS speaker,
+                   t.title AS transcript_title,
+                   t.source,
+                   t.source_ref,
+                   t.event_date,
+                   e.title AS event_title
             FROM transcript_segments ts
+            JOIN transcripts t ON t.id = ts.transcript_id
             LEFT JOIN speakers s ON s.id = ts.speaker_id
+            LEFT JOIN events e ON e.id = t.event_id
             WHERE ts.transcript_id = ?
               AND ts.segment_index BETWEEN ? AND ?
             ORDER BY ts.segment_index ASC
@@ -167,6 +188,8 @@ def get_transcript_segment_window(transcript_id: int, segment_index: int, radius
 
 def search_news_runtime(query: str = '', speaker: str = '', limit: int = 10,
                         path: str | Path | None = None) -> list[dict]:
+    if not _runtime_contract_ready('news_search', path):
+        return []
     clauses = []
     params: list = []
     if query:
@@ -267,6 +290,8 @@ def get_transcript_knowledge_bundle(query: str = '', speaker: str = '', limit_pe
 def search_transcript_tags_runtime(speaker: str = '', topic_tags: list[str] | None = None,
                                    format_tags: list[str] | None = None, limit: int = 10,
                                    path: str | Path | None = None) -> list[dict]:
+    if not _runtime_contract_ready('transcript_tags', path):
+        return []
     topic_tags = topic_tags or []
     format_tags = format_tags or []
     clauses = []
@@ -344,3 +369,15 @@ def _loads(raw: str, default):
     except Exception as exc:
         log.debug('Failed to decode runtime JSON blob: %s', exc)
         return default
+
+
+def _runtime_contract_ready(contract_name: str, path: str | Path | None) -> bool:
+    requirement = RUNTIME_READ_REQUIREMENTS.get(contract_name)
+    if not requirement:
+        return True
+    with connect_runtime_db(path or RUNTIME_DB_PATH) as conn:
+        missing = validate_runtime_schema(conn, requirement)
+    if not missing:
+        return True
+    log.warning('Runtime DB contract %s degraded: %s', contract_name, missing)
+    return False

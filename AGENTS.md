@@ -29,8 +29,6 @@ Default OpenClaw-facing domain entrypoint:
 
 - `mentionsctl answer mentions "<query>"`
 
-Legacy compatibility still exists through `python -m library ...`.
-
 ## Pack pipeline
 
 Every request flows through:
@@ -54,7 +52,6 @@ Capability boundaries:
 - base session/continuity state: `workspace/`
 - Mentions pack data and DB: `workspace/mentions/`
 - OpenClaw persona/bootstrap workspace: `openclaw-workspace/`
-- legacy architecture dump: `legacy/pmt-architecture-dump/`
 - OpenClaw gateway config for local testing: `gateway/openclaw.local.example.json5`
 
 ## Required env

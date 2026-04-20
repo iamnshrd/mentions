@@ -10,6 +10,25 @@ from .schema import SCHEMA_SQL
 
 RUNTIME_DB_PATH = DATA / 'mentions_runtime.db'
 
+RUNTIME_READ_REQUIREMENTS = {
+    'transcript_search': {
+        'transcripts': ('id', 'title', 'source', 'source_ref', 'event_id', 'event_date', 'raw_text', 'updated_at'),
+        'transcript_segments': ('transcript_id', 'segment_index', 'speaker_id', 'text', 'start_ts', 'end_ts', 'metadata_json'),
+        'speakers': ('id', 'canonical_name'),
+        'events': ('id', 'event_key', 'title'),
+    },
+    'news_search': {
+        'news_items': ('id', 'source', 'url', 'headline', 'published_at', 'body_text', 'fetched_at', 'speaker_id', 'event_id'),
+        'speakers': ('id', 'canonical_name'),
+        'events': ('id', 'event_key'),
+    },
+    'transcript_tags': {
+        'transcript_tags': ('transcript_id', 'speaker_primary', 'topic_tags_json', 'format_tags_json', 'updated_at', 'tagging_confidence'),
+        'transcripts': ('id', 'title', 'source', 'source_ref', 'event_id'),
+        'events': ('id', 'event_key', 'title'),
+    },
+}
+
 
 def connect_runtime_db(path: str | Path | None = None) -> sqlite3.Connection:
     db_path = Path(path) if path else RUNTIME_DB_PATH
@@ -17,6 +36,51 @@ def connect_runtime_db(path: str | Path | None = None) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def _runtime_table_exists(conn: sqlite3.Connection, table: str) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?",
+        (table,),
+    ).fetchone()
+    return row is not None
+
+
+def _runtime_table_columns(conn: sqlite3.Connection, table: str) -> set[str]:
+    if not _runtime_table_exists(conn, table):
+        return set()
+    rows = conn.execute(f'PRAGMA table_info({table})').fetchall()
+    return {row['name'] for row in rows}
+
+
+def validate_runtime_schema(
+    conn: sqlite3.Connection,
+    requirements: dict[str, tuple[str, ...]],
+) -> dict[str, list[str]]:
+    missing: dict[str, list[str]] = {}
+    for table, columns in requirements.items():
+        existing = _runtime_table_columns(conn, table)
+        if not existing:
+            missing[table] = ['<table missing>']
+            continue
+        absent = [column for column in columns if column not in existing]
+        if absent:
+            missing[table] = absent
+    return missing
+
+
+def get_runtime_health(path: str | Path | None = None) -> dict:
+    db_path = Path(path) if path else RUNTIME_DB_PATH
+    with connect_runtime_db(db_path) as conn:
+        contracts = {
+            name: validate_runtime_schema(conn, requirement)
+            for name, requirement in RUNTIME_READ_REQUIREMENTS.items()
+        }
+    return {
+        'status': 'ok' if not any(contracts.values()) else 'degraded',
+        'path': str(db_path),
+        'contracts': contracts,
+    }
 
 
 def bootstrap_runtime_db(path: str | Path | None = None) -> str:

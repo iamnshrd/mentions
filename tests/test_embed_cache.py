@@ -5,7 +5,7 @@ import sqlite3
 
 import pytest
 
-from library._core.retrieve import embed_cache
+from agents.mentions.storage.retrieval import embed_cache
 
 
 # ── Pack / unpack ──────────────────────────────────────────────────────────

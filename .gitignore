@@ -57,6 +57,7 @@ env/
 
 # macOS
 .DS_Store
+.tmp_mentionless_zip/
 
 # Editors
 .idea/

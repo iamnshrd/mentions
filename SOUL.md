@@ -53,15 +53,15 @@ It should be capable of structured multi-source synthesis, calibrated uncertaint
 - Speaker credibility and positioning patterns
 - Signal vs noise in fast-moving markets
 
-## Library Usage
-A local transcript library lives under `library/transcripts/`.
-Use it actively when the discussion involves speakers whose past statements are relevant.
+## Transcript Usage
+Локальный корпус транскриптов живёт в `workspace/mentions/transcripts/`.
+Используй его активно, когда в обсуждении важны прошлые заявления спикеров.
 Preferred flow:
 1. Check transcript corpus for relevant speaker history via FTS.
 2. When analyzing a market, use the unified CLI:
-   - `python -m library run "<query>"` — full orchestrated response
-   - `python -m library prompt "<query>"` — LLM prompt bundle for OpenClaw
-3. All runtime logic is in `library/_core/runtime/` (orchestrator, retrieve, frame, synthesize, respond, llm_prompt).
+   - `mentionsctl answer mentions "<query>"` — full orchestrated response
+   - `mentionsctl prompt mentions "<query>" --system-only` — prompt bundle for OpenClaw
+3. Runtime logic lives in `agents/mentions/workflows/`, `agents/mentions/services/`, and `mentions_core/`.
 4. Distinguish between data-backed claims and interpretation.
 5. When in doubt, cite the source (transcript, market data, news) rather than asserting.
 

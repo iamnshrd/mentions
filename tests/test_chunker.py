@@ -1,4 +1,4 @@
-"""Tests for library._core.ingest.chunker (chunker v2).
+"""Tests for agents.mentions.ingest.chunker (chunker v2).
 
 Covers:
   * count_tokens (tiktoken cl100k_base)
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from library._core.ingest.chunker import (
+from agents.mentions.ingest.chunker import (
     Chunk,
     _ChunkPacker,
     _parse_timestamp,
@@ -346,7 +346,7 @@ class TestChunkPackerDirect:
 
     def test_zero_overlap_clears_buffer(self):
         packer = _ChunkPacker(target_tokens=10, overlap_tokens=0, max_tokens=50)
-        from library._core.ingest.chunker import _Turn
+        from agents.mentions.ingest.chunker import _Turn
         packer.add_turn(_Turn('A', 'short one', 0, 9, 0))
         packer.add_turn(_Turn('B', 'another short', 10, 23, 1))
         packer.flush()

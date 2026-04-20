@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from agents.mentions.presentation.debug_view import build_debug_view, render_debug_view_text
 from agents.mentions.presentation.profile_renderers import build_output_profiles
 from agents.mentions.presentation.normalizer import normalize_confidence, normalize_confidence_scope, normalize_route
 
@@ -14,7 +15,11 @@ def render_user_response(query: str, frame: dict, synthesis: dict,
             'query': query,
             'frame': frame,
             'synthesis': synthesis,
+            'debug_view': build_debug_view(synthesis),
         }, ensure_ascii=False, indent=2)
+
+    if mode == 'debug':
+        return render_debug_view_text(synthesis)
 
     analysis_profiles = synthesis.get('analysis_profiles') or {}
     rendered_profiles = build_output_profiles(query, analysis_profiles) if analysis_profiles else {}

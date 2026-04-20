@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from library._core.analysis.probability import (
+from mentions_domain.posteriors.probability import (
     clamp01, combine_independent, kelly_fraction, label_from_p,
     logit, p_from_label, sigmoid,
 )

@@ -1,12 +1,13 @@
-"""Continuity state for tracking recurring routes and open analyses.
+"""Continuity state — track recurring markets, routes, and open analyses.
 
-Schema v3 adds market-domain buckets:
-  - ``macro_loops``  — recurring macro/fed/rate threads
-  - ``crypto_loops`` — recurring crypto-specific threads
-
-Old v1/v2 data is automatically migrated on load.
+Schema v4 adds market-domain intent and entity buckets:
+  - ``intents``  — tally of classified intents
+  - ``speakers`` — named speakers referenced
+  - ``tickers``  — Kalshi tickers referenced
 """
 from __future__ import annotations
+
+import copy
 
 from mentions_core.base.config import get_default_store
 from mentions_core.base.state_store import (
@@ -27,20 +28,23 @@ def _sort_items(items, key='salience'):
 
 
 _DEFAULT: dict = {
-    'version': 3,
+    'version': 4,
     'recurring_themes': [],   # markets/categories seen repeatedly
     'user_patterns': [],      # routes used repeatedly (price-movement, macro, etc.)
     'open_loops': [],         # active analyses / tracked markets
     'resolved_loops': [],     # analyses concluded
     'macro_loops': [],        # macro/fed/rate recurring threads
     'crypto_loops': [],       # crypto-specific recurring threads
+    'intents': [],            # classified intent frequencies
+    'speakers': [],           # named speakers referenced
+    'tickers': [],            # Kalshi tickers referenced
     'last_updated': None,
 }
 
 # Keys that are lists in the schema
 _LIST_KEYS = frozenset({
     'recurring_themes', 'user_patterns', 'open_loops', 'resolved_loops',
-    'macro_loops', 'crypto_loops',
+    'macro_loops', 'crypto_loops', 'intents', 'speakers', 'tickers',
 })
 
 # Category → domain bucket mapping
@@ -53,18 +57,20 @@ _CRYPTO_CATEGORIES = frozenset({'crypto'})
 # ---------------------------------------------------------------------------
 
 def _migrate(data: dict) -> dict:
-    """Upgrade data to v3 in-place. Returns the (possibly modified) dict."""
+    """Upgrade data to the latest schema version in-place."""
     version = data.get('version', 1)
-    if version >= 3:
-        return data
+    if version < 3:
+        for key in ('macro_loops', 'crypto_loops'):
+            if key not in data:
+                data[key] = []
+        data['version'] = 3
+        version = 3
 
-    # v1 → v2: nothing structural changed, just bump version
-    # v2 → v3: add new list buckets
-    for key in ('macro_loops', 'crypto_loops'):
-        if key not in data:
-            data[key] = []
-
-    data['version'] = 3
+    if version < 4:
+        for key in ('intents', 'speakers', 'tickers'):
+            if key not in data:
+                data[key] = []
+        data['version'] = 4
     return data
 
 
@@ -73,7 +79,7 @@ def _migrate(data: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def load(user_id: str = 'default', store: StateStore | None = None) -> dict:
-    """Load continuity, migrate to v3 if needed, returning defaults when missing."""
+    """Load continuity, migrate to the latest schema, returning defaults when missing."""
     store = store or get_default_store()
     data = store.get_json(user_id, KEY_CONTINUITY)
     if data:
@@ -86,7 +92,7 @@ def load(user_id: str = 'default', store: StateStore | None = None) -> dict:
                 if isinstance(default_val, list) and not isinstance(data[key], list):
                     data[key] = []
         return data
-    return dict(_DEFAULT)
+    return copy.deepcopy(_DEFAULT)
 
 
 def save(data: dict, user_id: str = 'default',
@@ -154,6 +160,7 @@ def _route_bucket(data: dict, category: str) -> list | None:
 
 def update(query: str, route: str = '', category: str = '',
            open_loop: str = '', resolved_loop: str = '',
+           intent: str = '', speaker: str = '', ticker: str = '',
            user_id: str = 'default',
            store: StateStore | None = None) -> dict:
     """Full continuity update cycle — returns the updated data dict."""
@@ -168,6 +175,12 @@ def update(query: str, route: str = '', category: str = '',
             bump_loop(bucket, open_loop)
     if resolved_loop:
         _resolve_loop(data, resolved_loop)
+    if intent:
+        bump_named(data['intents'], intent)
+    if speaker:
+        bump_named(data['speakers'], speaker)
+    if ticker:
+        bump_named(data['tickers'], ticker)
     save(data, user_id=user_id, store=store)
     return data
 
@@ -220,5 +233,8 @@ def _build_summary_dict(data: dict) -> dict:
         'resolved_loops': _sort_items(data.get('resolved_loops',  []))[:5],
         'macro_loops':   _sort_items(data.get('macro_loops',      []))[:5],
         'crypto_loops':  _sort_items(data.get('crypto_loops',     []))[:5],
+        'top_intents':   _sort_items(data.get('intents',          []))[:5],
+        'top_speakers':  _sort_items(data.get('speakers',         []))[:5],
+        'top_tickers':   _sort_items(data.get('tickers',          []))[:5],
         'last_updated':  data.get('last_updated'),
     }

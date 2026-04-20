@@ -1,4 +1,4 @@
-"""Tests for library._core.retrieve.hybrid.
+"""Tests for retrieval hybrid service.
 
 Exercises the full hybrid-retrieval pipeline against a temp DB:
 
@@ -35,7 +35,7 @@ def _seed_corpus(db_path: Path, texts=SAMPLE_TEXTS) -> dict[str, int]:
     Returns a dict with ``doc_id`` of the primary document and the list
     of inserted ``chunk_ids``.
     """
-    from library._core.kb.fts_sync import sync_document
+    from agents.mentions.storage.knowledge.fts_sync import sync_document
     ids = {'chunk_ids': []}
     with sqlite3.connect(db_path) as conn:
         # Group texts by event into a document per event.
@@ -78,7 +78,7 @@ def corpus(tmp_db):
 
 class TestBm25Candidates:
     def test_matches_kalshi_keyword(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import _bm25_candidates
+        from agents.mentions.services.retrieval.hybrid import _bm25_candidates
         rows = _bm25_candidates('kalshi', pool=20)
         assert len(rows) >= 3
         # Every returned row should actually contain 'kalshi'.
@@ -86,12 +86,12 @@ class TestBm25Candidates:
             assert 'kalshi' in r['text'].lower()
 
     def test_speaker_filter(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import _bm25_candidates
+        from agents.mentions.services.retrieval.hybrid import _bm25_candidates
         rows = _bm25_candidates('kalshi', pool=20, speaker='Alice')
         assert all(r['speaker'] == 'Alice' for r in rows)
 
     def test_returns_empty_on_no_match(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import _bm25_candidates
+        from agents.mentions.services.retrieval.hybrid import _bm25_candidates
         rows = _bm25_candidates('zzzunmatched', pool=20)
         assert rows == []
 
@@ -100,12 +100,13 @@ class TestBm25Candidates:
 
 class TestHybridRetrieve:
     def test_empty_query_returns_empty(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         assert hybrid_retrieve('') == []
         assert hybrid_retrieve('   ') == []
 
     def test_returns_hits_with_expected_shape(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import hybrid_retrieve, RetrievalHit
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
+        from mentions_domain.retrieval import RetrievalHit
         hits = hybrid_retrieve('kalshi pricing', limit=5)
         assert len(hits) >= 1
         for h in hits:
@@ -113,12 +114,25 @@ class TestHybridRetrieve:
             assert h.chunk_id > 0
             assert h.document_id > 0
             assert h.text
+            assert h.source_file
+            assert h.chunk_index >= 0
             assert h.rank_bm25 >= 1
             assert h.final_rank >= 1
 
+    def test_hits_include_traceability_fields(self, corpus, tmp_db):
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
+        hits = hybrid_retrieve('kalshi pricing', limit=3)
+        assert hits
+        hit = hits[0]
+        payload = hit.as_dict()
+        assert payload['trace']['chunk_id'] == hit.chunk_id
+        assert payload['trace']['document_id'] == hit.document_id
+        assert payload['trace']['source_file'].endswith('.txt')
+        assert payload['trace']['chunk_index'] == hit.chunk_index
+
     def test_bm25_rank_monotonic_in_candidate_pool(self, corpus, tmp_db):
         """Within the candidate pool, rank_bm25 ascends 1..N."""
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         hits = hybrid_retrieve('kalshi', limit=20, candidate_pool=10)
         ranks = [h.rank_bm25 for h in hits]
         # With no embeddings, final order follows fusion over lexical only.
@@ -127,13 +141,13 @@ class TestHybridRetrieve:
         assert all(1 <= r <= 10 for r in ranks)
 
     def test_limit_is_respected(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         hits = hybrid_retrieve('kalshi', limit=2, candidate_pool=20)
         assert len(hits) <= 2
 
     def test_token_budget_enforced(self, corpus, tmp_db):
         """Token budget caps cumulative token_count across hits."""
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         # Each seeded chunk has token_count around 20–25. Budget of 40
         # should admit ~2 chunks, not more.
         hits = hybrid_retrieve('kalshi', limit=10, token_budget=40,
@@ -147,14 +161,14 @@ class TestHybridRetrieve:
             assert total <= 60
 
     def test_speaker_filter_propagates(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         hits = hybrid_retrieve('kalshi', limit=10, speaker='Bob',
                                candidate_pool=20)
         assert hits, 'should find Bob-attributed chunks'
         assert all(h.speaker == 'Bob' for h in hits)
 
     def test_no_embed_backend_leaves_semantic_none(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         hits = hybrid_retrieve('kalshi', limit=5)
         # Default NullEmbed → semantic scoring disabled.
         assert all(h.score_semantic is None for h in hits)
@@ -162,7 +176,7 @@ class TestHybridRetrieve:
 
     def test_fake_embed_backend_activates_semantic(self, corpus, tmp_db):
         """Plugging in an embedding backend populates semantic scores."""
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
 
         class FakeEmbed:
             """Trivial hashing-based encoder for deterministic tests."""
@@ -193,7 +207,7 @@ class TestHybridRetrieve:
 class TestMMR:
     def test_mmr_prefers_diverse_hits(self, corpus, tmp_db):
         """Low lambda (=more diversity) should pull in more unique docs."""
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
         # Biased query that will match multiple chunks from Podcast A first.
         relevant = hybrid_retrieve('kalshi', limit=3, mmr_lambda=1.0,
                                    candidate_pool=20, token_budget=1000)
@@ -210,7 +224,7 @@ class TestMMR:
 
 class TestRetrieveBundle:
     def test_bundle_returns_chunks_and_doc_ids(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import retrieve_bundle
+        from agents.mentions.services.retrieval.hybrid import retrieve_bundle
         bundle = retrieve_bundle('kalshi', limit=4)
         assert bundle['query'] == 'kalshi'
         assert len(bundle['chunks']) >= 1
@@ -218,11 +232,13 @@ class TestRetrieveBundle:
         assert bundle['token_total'] == sum(
             c['token_count'] for c in bundle['chunks']
         )
+        assert bundle['chunks'][0]['trace']['document_id'] == bundle['chunks'][0]['document_id']
+        assert bundle['chunks'][0]['trace']['chunk_id'] == bundle['chunks'][0]['chunk_id']
 
     def test_bundle_includes_heuristics_linked_to_matched_docs(
         self, corpus, tmp_db,
     ):
-        from library._core.retrieve.hybrid import retrieve_bundle
+        from agents.mentions.services.retrieval.hybrid import retrieve_bundle
 
         # Seed a heuristic + evidence pointing at a specific matched doc.
         matched_doc = corpus['doc_ids'][0]
@@ -252,7 +268,7 @@ class TestRetrieveBundle:
         assert hid in ids
 
     def test_bundle_without_structured_slice(self, corpus, tmp_db):
-        from library._core.retrieve.hybrid import retrieve_bundle
+        from agents.mentions.services.retrieval.hybrid import retrieve_bundle
         bundle = retrieve_bundle('kalshi', include_structured=False)
         assert bundle['heuristics'] == []
         assert bundle['decision_cases'] == []
@@ -262,18 +278,18 @@ class TestRetrieveBundle:
 
 class TestEmbedBackends:
     def test_null_embed_returns_none(self):
-        from library._core.retrieve.embed import NullEmbed
+        from mentions_domain.retrieval.embed import NullEmbed
         assert NullEmbed().encode(['a', 'b']) is None
 
     def test_cosine_basic_properties(self):
-        from library._core.retrieve.embed import cosine
+        from mentions_domain.retrieval.embed import cosine
         assert cosine([1, 0, 0], [1, 0, 0]) == pytest.approx(1.0)
         assert cosine([1, 0, 0], [0, 1, 0]) == pytest.approx(0.0)
         assert cosine([], [1, 0, 0]) == 0.0
         assert cosine([1, 0], [1, 0, 0]) == 0.0  # mismatched dim → 0
 
     def test_default_backend_is_nonraising(self):
-        from library._core.retrieve.embed import default_backend
+        from mentions_domain.retrieval.embed import default_backend
         # Whatever is installed, this should not raise — either a real
         # backend or NullEmbed.
         b = default_backend()

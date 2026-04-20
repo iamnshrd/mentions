@@ -1,4 +1,4 @@
-"""Tests for library._core.intent.classifier.
+"""Tests for canonical intent classification.
 
 Covers:
   * Empty query → general_chat / confidence 0
@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import pytest
 
-from library._core.intent import INTENTS, IntentResult, classify_intent
-from library._core.llm import LLMResponse, NullClient
+from mentions_domain.intent import INTENTS, IntentResult, classify_intent
+from mentions_domain.llm import LLMResponse, NullClient
 
 
 # ── Fakes ──────────────────────────────────────────────────────────────────

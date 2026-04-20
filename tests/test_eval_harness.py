@@ -1,4 +1,4 @@
-"""Tests for library._core.eval.harness.
+"""Tests for agents.mentions.eval.harness.
 
 Covers:
   * load_gold_queries validates required fields
@@ -17,14 +17,14 @@ import json
 
 import pytest
 
-from library._core.eval.harness import (
+from agents.mentions.eval.harness import (
     _prf,
     _recall_at_k,
     _mrr_at_k,
     load_gold_queries,
     run_eval,
 )
-from library._core.llm import NullClient, LLMResponse
+from mentions_domain.llm import NullClient, LLMResponse
 
 
 # ── FakeClient (mirrors test_intent_classifier) ────────────────────────────

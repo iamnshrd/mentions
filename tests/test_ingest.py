@@ -1,4 +1,4 @@
-"""End-to-end tests for library._core.ingest.transcript.
+"""End-to-end tests for agents.mentions.ingest.transcript.
 
 Exercises the full pipeline:
   read file → normalise → chunk → upsert document → insert chunks → FTS sync
@@ -41,7 +41,7 @@ def _write_transcript(tmp_path: Path, name: str = 'sample.txt',
 
 class TestRegister:
     def test_happy_path_creates_document_and_chunks(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         src = _write_transcript(tmp_path)
         result = register(str(src), speaker='Bob', event='Podcast 2024',
                           event_date='2024-05-01')
@@ -51,9 +51,24 @@ class TestRegister:
         assert result['chunks'] >= 1
         assert result['tokens'] > 0
         assert result['language'] == 'en'
+        assert result['trace']['document_id'] == result['document_id']
+        assert result['trace']['chunk_count'] == result['chunks']
+        assert len(result['trace']['chunk_ids']) == result['chunks']
+
+    def test_register_returns_traceability_payload(self, tmp_db, tmp_path):
+        from agents.mentions.ingest.transcript import register
+        src = _write_transcript(tmp_path)
+        result = register(str(src), speaker='Bob')
+
+        trace = result['trace']
+        assert trace['source_file'] == str(src)
+        assert len(trace['sha256']) == 64
+        assert trace['chunk_count'] >= 1
+        assert trace['chunk_preview']
+        assert trace['chunk_preview'][0]['chunk_id'] == trace['chunk_ids'][0]
 
     def test_document_row_has_v2_columns_populated(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         src = _write_transcript(tmp_path)
         result = register(str(src), speaker='Bob', event='Podcast')
 
@@ -79,7 +94,7 @@ class TestRegister:
         assert token_count > 0
 
     def test_chunk_rows_have_v2_columns_populated(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         src = _write_transcript(tmp_path)
         result = register(str(src), speaker='Bob')
 
@@ -106,7 +121,7 @@ class TestRegister:
             assert turn_id is None or turn_id >= 0
 
     def test_stage_directions_stripped_from_chunks(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         src = _write_transcript(tmp_path)
         result = register(str(src), speaker='Bob')
         with sqlite3.connect(tmp_db) as conn:
@@ -120,7 +135,7 @@ class TestRegister:
         assert '[Applause]' not in joined
 
     def test_fts_index_contains_document(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         src = _write_transcript(tmp_path)
         result = register(str(src), speaker='Bob')
 
@@ -140,7 +155,7 @@ class TestRegister:
         assert result['document_id'] in matched_doc_ids
 
     def test_idempotent_second_call_skips_reindex(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         src = _write_transcript(tmp_path)
         first  = register(str(src), speaker='Bob')
         second = register(str(src), speaker='Bob')
@@ -157,14 +172,18 @@ class TestRegister:
             ).fetchone()[0]
         assert n == first['chunks']
 
-    def test_sha_change_refreshes_metadata(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+    def test_sha_change_reindexes_chunks_and_metadata(self, tmp_db, tmp_path):
+        from agents.mentions.ingest.transcript import register
         src = _write_transcript(tmp_path)
         first = register(str(src), speaker='Bob')
 
         with sqlite3.connect(tmp_db) as conn:
             sha_before = conn.execute(
                 'SELECT sha256 FROM transcript_documents WHERE id = ?',
+                (first['document_id'],),
+            ).fetchone()[0]
+            chunks_before = conn.execute(
+                'SELECT COUNT(*) FROM transcript_chunks WHERE document_id = ?',
                 (first['document_id'],),
             ).fetchone()[0]
 
@@ -178,20 +197,54 @@ class TestRegister:
                 'SELECT sha256 FROM transcript_documents WHERE id = ?',
                 (first['document_id'],),
             ).fetchone()[0]
+            chunks_after = conn.execute(
+                'SELECT COUNT(*) FROM transcript_chunks WHERE document_id = ?',
+                (first['document_id'],),
+            ).fetchone()[0]
 
         assert sha_before != sha_after
-        # Existing doc → status is 'already_indexed' (metadata refreshed, but
-        # chunks are not re-inserted unless you call rechunk).
+        assert second['status'] == 'reindexed'
         assert second['document_id'] == first['document_id']
+        assert second['content_changed'] is True
+        assert chunks_after >= chunks_before
+        assert second['trace']['chunk_count'] == chunks_after
+
+    def test_register_errors_on_invalid_transcript_schema(self, tmp_path, monkeypatch):
+        from agents.mentions import config as cfg
+        from agents.mentions.ingest.transcript import register
+        broken_db = tmp_path / 'broken.db'
+        monkeypatch.setattr(cfg, 'DB_PATH', broken_db)
+        src = _write_transcript(tmp_path)
+
+        with sqlite3.connect(broken_db) as conn:
+            conn.executescript('''
+                CREATE TABLE transcript_documents (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    source_file TEXT UNIQUE,
+                    status TEXT
+                );
+                CREATE TABLE transcript_chunks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    document_id INTEGER,
+                    chunk_index INTEGER,
+                    text TEXT
+                );
+                PRAGMA user_version = 10;
+            ''')
+
+        result = register(str(src), speaker='Bob')
+        assert result['status'] == 'error'
+        assert result['error_code'] == 'schema_invalid'
+        assert 'Transcript schema contract' in result['error']
 
     def test_missing_file_returns_error(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         result = register(str(tmp_path / 'does_not_exist.txt'))
         assert result['status'] == 'error'
         assert 'not found' in result['error'].lower()
 
     def test_unsupported_format_returns_error(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         p = tmp_path / 'weird.xyz'
         p.write_text('hello', encoding='utf-8')
         result = register(str(p))
@@ -201,11 +254,11 @@ class TestRegister:
         self, tmp_db, tmp_path, monkeypatch,
     ):
         """When source_file isn't absolute, it's resolved under TRANSCRIPTS."""
-        from library import config as cfg
+        from agents.mentions import config as cfg
         monkeypatch.setattr(cfg, 'TRANSCRIPTS', tmp_path)
         src = _write_transcript(tmp_path, 'mytranscript.txt')
 
-        from library._core.ingest.transcript import register
+        from agents.mentions.ingest.transcript import register
         result = register('mytranscript.txt', speaker='Bob')
         assert result['status'] == 'indexed'
         # Stored path should be the resolved absolute one.
@@ -216,7 +269,7 @@ class TestRegister:
 
 class TestRechunk:
     def test_rechunk_replaces_chunks(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register, rechunk
+        from agents.mentions.ingest.transcript import register, rechunk
         src = _write_transcript(tmp_path)
         first = register(str(src), speaker='Bob')
 
@@ -241,13 +294,13 @@ class TestRechunk:
         assert sha_ids_before == sha_ids_after
 
     def test_rechunk_unknown_doc_returns_error(self, tmp_db):
-        from library._core.ingest.transcript import rechunk
+        from agents.mentions.ingest.transcript import rechunk
         result = rechunk(99999)
         assert result['status'] == 'error'
         assert '99999' in result['error']
 
     def test_rechunk_missing_source_returns_error(self, tmp_db, tmp_path):
-        from library._core.ingest.transcript import register, rechunk
+        from agents.mentions.ingest.transcript import register, rechunk
         src = _write_transcript(tmp_path)
         first = register(str(src), speaker='Bob')
         src.unlink()
@@ -256,9 +309,9 @@ class TestRechunk:
         assert result['status'] == 'error'
         assert 'missing' in result['error'].lower()
 
-    def test_rechunk_all_via_cli(self, tmp_db, tmp_path, capsys):
-        """`ingest rechunk --all` iterates every document and reports totals."""
-        from library._core.ingest.transcript import register
+    def test_rechunk_all_via_api(self, tmp_db, tmp_path):
+        """Bulk rechunk can be composed from the canonical transcript API."""
+        from agents.mentions.ingest.transcript import register, rechunk
         # Seed a couple of documents.
         src1 = _write_transcript(tmp_path, 'a.txt')
         src2 = _write_transcript(tmp_path, 'b.txt',
@@ -266,39 +319,37 @@ class TestRechunk:
         register(str(src1), speaker='Bob')
         register(str(src2), speaker='Bob')
 
-        # Drive the CLI directly.
-        from library.__main__ import build_parser, cmd_ingest
-        parser = build_parser()
-        args = parser.parse_args(['ingest', 'rechunk', '--all'])
-        cmd_ingest(args)
-
-        import json as _json
-        out = capsys.readouterr().out
-        summary = _json.loads(out)
+        from agents.mentions.db import connect
+        with connect() as conn:
+            doc_ids = [r[0] for r in conn.execute(
+                'SELECT id FROM transcript_documents ORDER BY id'
+            ).fetchall()]
+        results = [rechunk(doc_id) for doc_id in doc_ids]
+        summary = {
+            'status': 'rechunked_all',
+            'total_docs': len(results),
+            'ok': sum(1 for r in results if r['status'] == 'rechunked'),
+            'errors': sum(1 for r in results if r['status'] == 'error'),
+            'total_chunks': sum(r.get('chunks', 0) for r in results),
+        }
         assert summary['status'] == 'rechunked_all'
         assert summary['total_docs'] == 2
         assert summary['ok'] == 2
         assert summary['errors'] == 0
         assert summary['total_chunks'] >= 2
 
-    def test_rechunk_single_via_cli(self, tmp_db, tmp_path, capsys):
-        from library._core.ingest.transcript import register
+    def test_rechunk_single_via_api(self, tmp_db, tmp_path):
+        from agents.mentions.ingest.transcript import register, rechunk
         src = _write_transcript(tmp_path)
         r = register(str(src), speaker='Bob')
-
-        from library.__main__ import build_parser, cmd_ingest
-        parser = build_parser()
-        args = parser.parse_args(['ingest', 'rechunk', str(r['document_id'])])
-        cmd_ingest(args)
-
-        import json as _json
-        payload = _json.loads(capsys.readouterr().out)
+        payload = rechunk(r['document_id'])
         assert payload['status'] == 'rechunked'
         assert payload['document_id'] == r['document_id']
+        assert payload['trace']['document_id'] == r['document_id']
 
     def test_rechunk_syncs_fts(self, tmp_db, tmp_path):
         """After rechunk, FTS rows should match current chunks."""
-        from library._core.ingest.transcript import register, rechunk
+        from agents.mentions.ingest.transcript import register, rechunk
         src = _write_transcript(tmp_path)
         first = register(str(src), speaker='Bob')
         rechunk(first['document_id'])

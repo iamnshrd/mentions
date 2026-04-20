@@ -1,4 +1,4 @@
-from agents.mentions.modules.evidence_fusion.fuser import fuse_evidence_bundle
+from agents.mentions.services.analysis.evidence_fusion import fuse_evidence_bundle
 
 
 def test_fuse_evidence_bundle_builds_primary_and_secondary_sections():

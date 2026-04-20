@@ -5,7 +5,7 @@ import sqlite3
 
 import pytest
 
-from library._core.analysis.speaker_learn import (
+from mentions_domain.posteriors.speaker_learn import (
     get_counts, posterior_by_stance, posterior_p, record_speaker_application,
     reset_posterior, top_confident_speakers,
 )

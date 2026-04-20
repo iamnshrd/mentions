@@ -22,6 +22,4 @@ mentionsctl capability mentions wording rewrite "<text>"
 mentionsctl schedule mentions run --dry-run
 ```
 
-## Legacy compatibility
-
-If older notes mention `python -m library ...`, that path still works, but prefer `mentionsctl`.
+Используйте `mentionsctl` или `python -m mentions_core ...` как единственные локальные CLI-пути.

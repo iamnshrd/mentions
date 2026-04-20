@@ -1,4 +1,4 @@
-from agents.mentions.modules.market_resolution import resolve_market_from_query
+from mentions_domain.market_resolution import resolve_market_from_query
 
 
 def test_market_resolution_prefers_relevant_trump_mention_market():

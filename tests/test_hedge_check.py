@@ -6,9 +6,13 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from library._core.analysis.hedge_check import (
-    check_hedge_conflict, detect_hedge_conflicts, find_recent_decisions,
-    ticker_outcome, ticker_prefix,
+from agents.mentions.services.markets.hedge_check import (
+    check_hedge_conflict, find_recent_decisions,
+)
+from mentions_domain.analysis.hedge_check import (
+    detect_hedge_conflicts,
+    ticker_outcome,
+    ticker_prefix,
 )
 
 

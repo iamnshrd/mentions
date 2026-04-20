@@ -1,8 +1,9 @@
-from agents.mentions.modules.memo_renderer import render_memo_output
+from agents.mentions.presentation.response_renderer import render_user_response
+import json
 
 
 def test_memo_renderer_deep_contains_sections():
-    text = render_memo_output(
+    text = render_user_response(
         query='Will Trump mention Iran?',
         frame={'route': 'speaker-event'},
         synthesis={
@@ -17,14 +18,14 @@ def test_memo_renderer_deep_contains_sections():
         },
         mode='deep',
     )
-    assert 'Analysis:' in text
-    assert 'Reasoning chain:' in text
-    assert 'Conclusion:' in text
-    assert 'Recommended action:' in text
+    assert 'Разбор:' in text
+    assert 'Логика:' in text
+    assert 'Вывод:' in text
+    assert 'Маршрут:' in text
 
 
 def test_memo_renderer_quick_is_compact():
-    text = render_memo_output(
+    text = render_user_response(
         query='x',
         frame={},
         synthesis={
@@ -36,5 +37,81 @@ def test_memo_renderer_quick_is_compact():
         mode='quick',
     )
     assert 'Market summary' in text
-    assert 'Signal:' in text
-    assert 'Confidence:' in text
+    assert 'Сигнал:' in text
+    assert 'Уверенность:' in text
+
+
+def test_memo_renderer_json_includes_debug_view():
+    text = render_user_response(
+        query='Will Trump mention Iran?',
+        frame={'route': 'speaker-event'},
+        synthesis={
+            'evidence_debug': {
+                'source_summary': {
+                    'sources_used': ['news', 'transcripts'],
+                    'news_count': 1,
+                    'transcript_count': 2,
+                    'has_market_data': True,
+                    'has_history': False,
+                },
+                'runtime_health': {
+                    'transcripts': {'contract': 'transcript_search', 'status': 'ok'},
+                },
+                'context_risks': {
+                    'news': ['runtime-db-news-fallback'],
+                    'transcripts': [],
+                },
+                'transcript_trace': {
+                    'lead_candidate': {'transcript_id': 'tx-1', 'segment_index': 3},
+                },
+                'news_trace': {
+                    'status': 'ok',
+                    'freshness': 'stored',
+                    'sufficiency': 'partial',
+                    'items': [{'headline': 'Iran headline'}],
+                },
+            },
+        },
+        output_format='json',
+    )
+    payload = json.loads(text)
+    assert payload['debug_view']['summary']['sources_used'] == ['news', 'transcripts']
+    assert payload['debug_view']['runtime_health']['transcripts']['contract'] == 'transcript_search'
+    assert payload['debug_view']['top_evidence']['lead_transcript']['transcript_id'] == 'tx-1'
+
+
+def test_memo_renderer_debug_mode_renders_debug_sections():
+    text = render_user_response(
+        query='Will Trump mention Iran?',
+        frame={'route': 'speaker-event'},
+        synthesis={
+            'evidence_debug': {
+                'source_summary': {
+                    'sources_used': ['news', 'transcripts'],
+                    'news_count': 1,
+                    'transcript_count': 2,
+                },
+                'runtime_health': {
+                    'news': {'contract': 'news_search', 'status': 'degraded'},
+                },
+                'context_risks': {
+                    'news': ['runtime-db-news-fallback'],
+                    'transcripts': ['runtime-db-transcript-fallback'],
+                },
+                'transcript_trace': {
+                    'lead_candidate': {'transcript_id': 'tx-1', 'source_ref': 'yt:abc'},
+                },
+                'news_trace': {
+                    'status': 'ok',
+                    'freshness': 'stored',
+                    'sufficiency': 'partial',
+                    'items': [{'headline': 'Iran headline'}],
+                },
+            },
+        },
+        mode='debug',
+    )
+    assert 'Debug View' in text
+    assert 'Runtime health [news]: degraded (news_search)' in text
+    assert 'Lead transcript:' in text
+    assert 'Lead news: Iran headline' in text

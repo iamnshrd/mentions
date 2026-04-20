@@ -17,7 +17,7 @@ mentionsctl = "mentions_core.cli:main"
 dev = ["pytest>=8.0"]
 
 [tool.setuptools.packages.find]
-include = ["mentions_core*", "agents*", "library*"]
+include = ["mentions_core*", "agents*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

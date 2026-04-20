@@ -6,7 +6,7 @@ import json
 import os
 import sys
 
-from agents.mentions.runtime.orchestrator import orchestrate
+from agents.mentions.workflows.orchestrator import orchestrate
 
 
 def main() -> int:

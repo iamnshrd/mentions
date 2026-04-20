@@ -6,7 +6,7 @@ import json
 import os
 import sys
 
-from agents.mentions.runtime.orchestrator import orchestrate_url
+from agents.mentions.workflows.orchestrator import orchestrate_url
 
 
 def main() -> int:

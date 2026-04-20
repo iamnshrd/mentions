@@ -1,4 +1,4 @@
-from agents.mentions.modules.url_intake.intake import intake_market_input
+from agents.mentions.services.intake.intake import intake_market_input
 
 
 def test_url_intake_for_kalshi_market_url():

@@ -1,5 +1,5 @@
 from agents.mentions.module_registry import load_module_bindings, module_health_report
-from agents.mentions.runtime.validation import runtime_validation_report
+from agents.mentions.workflows.validation import runtime_validation_report
 
 
 def test_module_bindings_load_defaults():

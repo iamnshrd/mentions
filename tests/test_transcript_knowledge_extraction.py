@@ -1,4 +1,4 @@
-from agents.mentions.modules.transcript_knowledge_extraction.extractor import extract_transcript_knowledge_bundle
+from agents.mentions.services.transcripts.knowledge_extraction import extract_transcript_knowledge_bundle
 
 
 def test_transcript_knowledge_extraction_selects_structured_candidates():
@@ -14,12 +14,12 @@ def test_transcript_knowledge_extraction_selects_structured_candidates():
                 {
                     'speaker': 'Donald Trump',
                     'event': 'Interview',
-                    'text': 'Limit orders matter because fills and spread control are the whole game in thin books.',
+                    'text': 'Limit orders matter because fills and spread control are the whole game in thin books, and execution improves when maker discipline keeps entries patient instead of forcing taker fills into a bad orderbook.',
                 },
                 {
                     'speaker': 'Donald Trump',
                     'event': 'Interview',
-                    'text': 'Historically he often says these things late in Q&A, not in prepared remarks.',
+                    'text': 'Historically he often says these things late in Q&A, not in prepared remarks, and he usually tends to circle back to the topic only after the first wave of questions has already set the frame.',
                 },
             ]
         },

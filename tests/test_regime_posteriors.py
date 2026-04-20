@@ -5,10 +5,10 @@ import sqlite3
 
 import pytest
 
-from library._core.analysis.heuristic_learn import (
+from mentions_domain.posteriors.heuristic_learn import (
     posterior_by_regime, record_application, top_confident_for_regime,
 )
-from library._core.analysis.speaker_learn import record_speaker_application
+from mentions_domain.posteriors.speaker_learn import record_speaker_application
 
 
 # ── Schema ────────────────────────────────────────────────────────────────

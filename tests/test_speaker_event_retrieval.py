@@ -1,9 +1,9 @@
-from agents.mentions.modules.speaker_event_retrieval.retriever import retrieve_relevant_speaker_events
+from agents.mentions.services.speakers.event_retrieval import retrieve_relevant_speaker_events
 
 
 def test_speaker_event_retrieval_prefers_tagged_topic_and_format_matches(monkeypatch):
     monkeypatch.setattr(
-        'agents.mentions.modules.speaker_event_retrieval.retriever.search_transcript_tags_runtime',
+        'agents.mentions.services.speakers.event_retrieval.search_transcript_tags_runtime',
         lambda speaker='', topic_tags=None, format_tags=None, limit=10: [
             {
                 'event_title': 'Press Briefing A',
@@ -15,7 +15,7 @@ def test_speaker_event_retrieval_prefers_tagged_topic_and_format_matches(monkeyp
         ],
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.speaker_event_retrieval.retriever.search_transcripts_runtime',
+        'agents.mentions.services.speakers.event_retrieval.search_transcripts_runtime',
         lambda query='', speaker='', limit=10: [
             {
                 'event_title': 'Press Briefing A',
@@ -38,11 +38,11 @@ def test_speaker_event_retrieval_prefers_tagged_topic_and_format_matches(monkeyp
 
 def test_speaker_event_retrieval_rejects_format_mismatch(monkeypatch):
     monkeypatch.setattr(
-        'agents.mentions.modules.speaker_event_retrieval.retriever.search_transcript_tags_runtime',
+        'agents.mentions.services.speakers.event_retrieval.search_transcript_tags_runtime',
         lambda speaker='', topic_tags=None, format_tags=None, limit=10: [],
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.speaker_event_retrieval.retriever.search_transcripts_runtime',
+        'agents.mentions.services.speakers.event_retrieval.search_transcripts_runtime',
         lambda query='', speaker='', limit=10: [
             {
                 'event_title': 'TV Interview',

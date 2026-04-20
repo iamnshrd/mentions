@@ -1,21 +1,21 @@
-from agents.mentions.modules.analysis_engine.engine import analyze_evidence_bundle
+from agents.mentions.services.analysis.engine import analyze_evidence_bundle
 
 
 def test_analysis_engine_appends_pmt_reasoning(monkeypatch):
     monkeypatch.setattr(
-        'agents.mentions.analysis.market.analyze_market',
+        'agents.mentions.services.analysis.market.analyze_market',
         lambda market, frame: 'Market summary',
     )
     monkeypatch.setattr(
-        'agents.mentions.analysis.signal.assess_signal',
+        'agents.mentions.services.analysis.signal.assess_signal',
         lambda market, frame: {'verdict': 'unclear', 'signal_strength': 'unknown'},
     )
     monkeypatch.setattr(
-        'agents.mentions.analysis.speaker.extract_speaker_context',
+        'agents.mentions.services.analysis.speaker.extract_speaker_context',
         lambda transcripts, query: 'Speaker context',
     )
     monkeypatch.setattr(
-        'agents.mentions.analysis.reasoning.build_reasoning_chain',
+        'agents.mentions.services.analysis.reasoning.build_reasoning_chain',
         lambda **kwargs: ['Base reasoning'],
     )
 

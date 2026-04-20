@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from library._core.eval.harness import (
+from agents.mentions.eval.harness import (
     _auc_roc, _profit_sim, _reliability_bins, _resolution, _sharpness,
 )
 
@@ -119,7 +119,7 @@ class TestProfitSim:
 class TestRunEvalReport:
     def test_report_carries_new_fields(self, tmp_workspace, tmp_db):
         """Harness must include resolution/sharpness/auc_roc in calibration."""
-        from library._core.eval.harness import run_eval
+        from agents.mentions.eval.harness import run_eval
 
         tiny_queries = [
             {'id': 'a', 'query': 'what is BTC doing?',
@@ -135,7 +135,7 @@ class TestRunEvalReport:
         assert 'profit_sim' in r
 
     def test_profit_sim_active_when_gold_has_prices(self, tmp_workspace, tmp_db):
-        from library._core.eval.harness import run_eval
+        from agents.mentions.eval.harness import run_eval
 
         queries = [
             {'id': 'a', 'query': 'Powell speaks tomorrow',

@@ -14,9 +14,9 @@ from unittest.mock import patch
 
 import pytest
 
-from library._core.fetch import kalshi as kclient
-from library._core.fetch.rate_limit import TokenBucket
-from library._core.obs import get_collector, reset_collector
+from agents.mentions.providers.kalshi import client as kclient
+from mentions_core.base.net.rate_limit import TokenBucket
+from mentions_core.base.obs import get_collector, reset_collector
 
 
 # ── Fakes ──────────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ class TestRetry:
             return _FakeResponse(payload)
 
         # Disable retry sleeps in the underlying with_retry.
-        import library._core.llm.retry as retry_mod
+        import mentions_domain.llm.retry as retry_mod
         monkeypatch.setattr(retry_mod, 'time',
                             type('T', (), {'sleep': lambda _d: None})())
 

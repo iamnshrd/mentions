@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from library._core.obs import (
+from mentions_core.base.obs import (
     MetricsCollector,
     get_collector,
     reset_collector,
@@ -14,7 +14,7 @@ from library._core.obs import (
     load_events,
     summarize_events,
 )
-from library._core.obs.metrics import _percentile, _tag_key
+from mentions_core.base.obs.metrics import _percentile, _tag_key
 
 
 # ── Unit: helpers ──────────────────────────────────────────────────────────
@@ -162,8 +162,8 @@ class TestEventLog:
 
 class TestIntentHooks:
     def test_nullclient_records_rules_fallback(self):
-        from library._core.llm import NullClient
-        from library._core.intent.classifier import classify_intent
+        from mentions_domain.llm import NullClient
+        from mentions_domain.intent.classifier import classify_intent
 
         reset_collector()
         classify_intent('what is btc doing', client=NullClient())
@@ -173,7 +173,7 @@ class TestIntentHooks:
         assert 'intent.result' in names
 
     def test_empty_query_does_not_invoke_llm(self):
-        from library._core.intent.classifier import classify_intent
+        from mentions_domain.intent.classifier import classify_intent
 
         reset_collector()
         classify_intent('')
@@ -185,8 +185,8 @@ class TestIntentHooks:
 
 class TestExtractHook:
     def test_nullclient_records_skip(self):
-        from library._core.llm import NullClient
-        from library._core.extract.pipeline import extract_from_chunk
+        from mentions_domain.llm import NullClient
+        from agents.mentions.services.extraction.pipeline import extract_from_chunk
 
         reset_collector()
         chunk = {'id': 1, 'document_id': 1, 'text': 'some body text'}
@@ -200,7 +200,7 @@ class TestExtractHook:
 
 class TestRetrieveHook:
     def test_empty_query_records_nothing(self):
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
 
         reset_collector()
         result = hybrid_retrieve('')
@@ -210,7 +210,7 @@ class TestRetrieveHook:
         assert 'retrieve.calls' not in names
 
     def test_no_candidates_records_empty(self, tmp_db):
-        from library._core.retrieve.hybrid import hybrid_retrieve
+        from agents.mentions.services.retrieval.hybrid import hybrid_retrieve
 
         reset_collector()
         # tmp_db is empty of transcript chunks → 0 candidates.

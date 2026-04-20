@@ -1,4 +1,4 @@
-from agents.mentions.modules.posterior_update.policy import compute_posterior_update
+from agents.mentions.services.markets.posterior_update import compute_posterior_update
 
 
 def test_compute_posterior_update_applies_bounded_move():

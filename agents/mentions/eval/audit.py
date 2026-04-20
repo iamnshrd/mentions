@@ -45,7 +45,10 @@ def audit() -> dict:
 def _check_db() -> dict:
     try:
         from agents.mentions.db import connect
-        from agents.mentions.kb.migrate import get_schema_version, LATEST_VERSION
+        from agents.mentions.storage.knowledge.migrate import (
+            LATEST_VERSION,
+            get_schema_version,
+        )
         with connect() as conn:
             version = get_schema_version(conn)
         return {
@@ -72,7 +75,7 @@ def _check_config_files() -> dict:
 
 def _check_orchestrator() -> dict:
     try:
-        from agents.mentions.runtime.orchestrator import detect_mode, should_use_kb
+        from agents.mentions.workflows.orchestrator import detect_mode, should_use_kb
         m = detect_mode('what is happening with bitcoin')
         k = should_use_kb('bitcoin price market')
         return {
@@ -86,7 +89,7 @@ def _check_orchestrator() -> dict:
 
 def _check_frame() -> dict:
     try:
-        from agents.mentions.runtime.frame import select_frame
+        from agents.mentions.workflows.frame_selection import select_frame
         frame = select_frame('why is the fed market moving?')
         return {
             'check': 'frame_selection',

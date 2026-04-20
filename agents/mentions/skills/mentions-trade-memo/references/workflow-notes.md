@@ -31,7 +31,7 @@ It is a router/orchestrator.
 
 ## Report format rules
 - Use `memo-template-v2-structured.md` as the default report shape.
-- Consult `agents/mentions/wording/markets_wording_db.json` before writing final prose.
+- Consult `agents/mentions/assets/wording/markets_wording_db.json` before writing final prose.
 - Start with a human-readable event title, not raw shorthand.
 - Include one compact line for topic / venue / format / expected duration.
 - Explicitly state whether guests are likely to speak and whether Q&A is likely.

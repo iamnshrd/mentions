@@ -48,7 +48,7 @@ Basket labels should normally be one of:
 - **Sizing:** small / normal / press / avoid sizing up
 
 ## Rules
-- Before writing prose, consult `agents/mentions/wording/markets_wording_db.json` and follow it as the wording source of truth.
+- Before writing prose, consult `agents/mentions/assets/wording/markets_wording_db.json` and follow it as the wording source of truth.
 - Use the exact user-approved replacements from the wording DB; do not improvise around them when a stored phrase already exists.
 - Use human-readable strike labels only, in monospace
 - Include both current price and rough FV for every strike mentioned

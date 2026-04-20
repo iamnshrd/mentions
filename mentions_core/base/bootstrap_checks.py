@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from agents.mentions.runtime.validation import runtime_validation_report
+from agents.mentions.workflows.validation import runtime_validation_report
 
 
 class RuntimeBootstrapError(RuntimeError):

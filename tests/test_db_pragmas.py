@@ -5,7 +5,7 @@ import sqlite3
 
 import pytest
 
-from library.db import connect
+from agents.mentions.db import connect
 
 
 class TestJournalMode:
@@ -44,7 +44,7 @@ class TestForeignKeys:
 
 class TestSchemaStillMigrates:
     def test_version_matches_latest(self, tmp_db):
-        from library._core.kb.migrate import LATEST_VERSION
+        from agents.mentions.storage.knowledge.migrate import LATEST_VERSION
         with connect(db_path=tmp_db) as conn:
             v = conn.execute('PRAGMA user_version').fetchone()[0]
         assert v == LATEST_VERSION

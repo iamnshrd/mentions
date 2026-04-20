@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from agents.mentions.ingest.transcript import _chunk_text, _chunk_text_structured, _extract_text
-from agents.mentions.modules.transcript_tagging import build_transcript_tags
+from agents.mentions.services.transcripts.tagging import build_transcript_tags
 from agents.mentions.storage.runtime_db import (
     bootstrap_runtime_db,
     replace_transcript_segments,

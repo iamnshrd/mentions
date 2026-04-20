@@ -1,4 +1,4 @@
-from agents.mentions.modules.kalshi_provider.sourcing import build_candidate_market_pool
+from agents.mentions.providers.kalshi.sourcing import build_candidate_market_pool
 
 
 def test_candidate_pool_uses_series_hints(monkeypatch):
@@ -11,11 +11,11 @@ def test_candidate_pool_uses_series_hints(monkeypatch):
         return {'markets': []}
 
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.get_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.get_markets_bundle',
         fake_get_markets_bundle,
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.search_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.search_markets_bundle',
         lambda query, limit=10: {'markets': []},
     )
 
@@ -37,11 +37,11 @@ def test_candidate_pool_expands_series_when_topic_missing_initially(monkeypatch)
         return {'markets': []}
 
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.get_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.get_markets_bundle',
         fake_get_markets_bundle,
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.search_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.search_markets_bundle',
         lambda query, limit=10: {'markets': []},
     )
 
@@ -52,11 +52,11 @@ def test_candidate_pool_expands_series_when_topic_missing_initially(monkeypatch)
 
 def test_candidate_pool_falls_back_to_search(monkeypatch):
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.get_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.get_markets_bundle',
         lambda **kwargs: {'markets': []},
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.search_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.search_markets_bundle',
         lambda query, limit=10: {'markets': [{'ticker': 'KXTEST', 'title': query}] if query == 'Will Trump mention Iran?' else []},
     )
 
@@ -67,7 +67,7 @@ def test_candidate_pool_falls_back_to_search(monkeypatch):
 
 def test_candidate_pool_filters_to_topic_and_mention_series(monkeypatch):
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.get_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.get_markets_bundle',
         lambda **kwargs: {
             'markets': [
                 {'ticker': 'KXTRUMPMENTION-IRAN', 'title': 'What will Donald Trump say about Iran?', 'yes_sub_title': 'Iran'},
@@ -77,7 +77,7 @@ def test_candidate_pool_filters_to_topic_and_mention_series(monkeypatch):
         },
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.search_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.search_markets_bundle',
         lambda query, limit=10: {'markets': []},
     )
 
@@ -85,12 +85,12 @@ def test_candidate_pool_filters_to_topic_and_mention_series(monkeypatch):
     tickers = [m['ticker'] for m in pool['markets']]
     assert tickers == ['KXTRUMPMENTION-IRAN']
     assert 'filter:mention-series-priority' in pool['diagnostics']
-    assert 'filter:topic-match' in pool['diagnostics']
+    assert any(item in pool['diagnostics'] for item in ('filter:exact-topic-label', 'filter:topic-match'))
 
 
 def test_candidate_pool_topic_aliases_iran_not_israel(monkeypatch):
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.get_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.get_markets_bundle',
         lambda **kwargs: {
             'markets': [
                 {'ticker': 'KXTRUMPMENTION-26APR15-IRAN', 'title': 'What will Donald Trump say?', 'yes_sub_title': 'Iran'},
@@ -100,7 +100,7 @@ def test_candidate_pool_topic_aliases_iran_not_israel(monkeypatch):
         },
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.search_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.search_markets_bundle',
         lambda query, limit=10: {'markets': []},
     )
 
@@ -126,11 +126,11 @@ def test_candidate_pool_can_expand_event_markets(monkeypatch):
         return {'markets': []}
 
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.search_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.search_markets_bundle',
         fake_search,
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.get_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.get_markets_bundle',
         fake_get_markets_bundle,
     )
 

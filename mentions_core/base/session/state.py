@@ -1,4 +1,4 @@
-"""Session state and user profile helpers for OpenClaw pack workflows."""
+"""Session state & user profile for the Mentions agent."""
 from __future__ import annotations
 
 from mentions_core.base.config import get_default_store
@@ -10,11 +10,12 @@ from mentions_core.base.utils import now_iso
 
 def update_session(query: str, route: str = '', category: str = '',
                    mode: str = 'deep', confidence: str = 'low',
+                   intent: str = '', intent_confidence: float = 0.0,
+                   intent_source: str = '',
+                   speaker: str = '', ticker: str = '',
                    user_id: str = 'default',
                    store: StateStore | None = None) -> dict:
     """Write session_state with the current turn context.
-
-    Returns the data dict written to disk.
     """
     store = store or get_default_store()
     data = {
@@ -23,6 +24,11 @@ def update_session(query: str, route: str = '', category: str = '',
         'working_category': category,
         'current_mode': mode,
         'last_confidence': confidence,
+        'last_intent': intent,
+        'last_intent_confidence': float(intent_confidence or 0.0),
+        'last_intent_source': intent_source,
+        'last_speaker': speaker,
+        'last_ticker': ticker,
         'updated_at': now_iso(),
     }
     store.put_json(user_id, KEY_SESSION_STATE, data)

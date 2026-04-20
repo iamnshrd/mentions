@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import json
 
-from library._core.eval.harness import (
+from agents.mentions.eval.harness import (
     _calibration_summary, _path_comparison_delta,
     _shadow_rules_pass, run_eval,
 )
-from library._core.llm import LLMResponse
+from mentions_domain.llm import LLMResponse
 
 
 # ── FakeClient (mirrors test_eval_harness) ────────────────────────────────

@@ -1,5 +1,6 @@
 from agents.mentions.storage.runtime_db import (
     bootstrap_runtime_db,
+    connect_runtime_db,
     insert_analysis_report,
     insert_market_snapshot,
     insert_resolution_run,
@@ -33,3 +34,30 @@ def test_runtime_query_reads_back_artifacts(tmp_path):
     assert get_recent_analysis_reports(path=db_path)[0]['ticker'] == 'KXTEST'
     assert search_transcripts_runtime(query='Iran', path=db_path)[0]['speaker'] == 'Donald Trump'
     assert search_news_runtime(query='Iran', path=db_path)[0]['headline'] == 'Iran headline'
+
+
+def test_runtime_query_degrades_softly_on_partial_schema(tmp_path):
+    db_path = tmp_path / 'broken_runtime.db'
+    with connect_runtime_db(db_path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE transcripts (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL DEFAULT ''
+            );
+            CREATE TABLE transcript_segments (
+                id INTEGER PRIMARY KEY,
+                transcript_id INTEGER NOT NULL,
+                segment_index INTEGER NOT NULL,
+                text TEXT NOT NULL DEFAULT ''
+            );
+            CREATE TABLE news_items (
+                id INTEGER PRIMARY KEY,
+                headline TEXT NOT NULL DEFAULT ''
+            );
+            """
+        )
+        conn.commit()
+
+    assert search_transcripts_runtime(query='Iran', path=db_path) == []
+    assert search_news_runtime(query='Iran', path=db_path) == []

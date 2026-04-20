@@ -6,11 +6,11 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from library._core.retrieve.recency import (
+from mentions_domain.retrieval.recency import (
     DEFAULT_HALF_LIFE_DAYS, RECENCY_FLOOR,
     _parse_event_date, apply_recency, recency_weight,
 )
-from library._core.retrieve.hybrid import RetrievalHit
+from mentions_domain.retrieval import RetrievalHit
 
 
 def _hit(event_date='', chunk_id=1):

@@ -6,11 +6,10 @@
 ## Structure
 
 - `mentions_core/` - локальный runtime-layer: CLI, pack registry, state/session, scheduler, logging
+- `mentions_domain/` - канонический domain-layer: общие контракты, нормализация и переиспользуемая доменная логика
 - `agents/mentions/` - pack с capability-слоями `transcripts`, `wording`, `news_context`, `analysis`
 - `openclaw-workspace/` - выделенная OpenClaw-facing persona/workspace поверхность
 - `gateway/` - локальные шаблоны и инструкции для официального OpenClaw Gateway
-- `legacy/pmt-architecture-dump/` - read-only архив старой skill/pipeline архитектуры
-- `library/` - legacy compatibility layer для старых импортов и `python -m library ...`
 
 ## Install
 
@@ -105,11 +104,9 @@ mentionsctl answer mentions "<query>"
 ## Compatibility
 
 - локальный runtime CLI: `python -m mentions_core ...` или `mentionsctl ...`
-- legacy CLI kept for compatibility: `python -m library ...`
-- legacy imports under `library.*` re-export from `mentions_core` and `agents.mentions`
-- `library/` is compatibility-only and should not receive new business logic
 
-Path migration details are documented in `MIGRATION.md`.
+Path migration details are documented in `docs/specs/MIGRATION.md`.
+Architecture ownership and migration sequencing are documented in `docs/specs/ARCHITECTURE_MIGRATION_MAP.md`.
 
 ## Runtime infrastructure
 

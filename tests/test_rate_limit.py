@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from library._core.fetch.rate_limit import TokenBucket
+from mentions_core.base.net.rate_limit import TokenBucket
 
 
 class FakeClock:

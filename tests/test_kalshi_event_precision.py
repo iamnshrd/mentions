@@ -1,4 +1,4 @@
-from agents.mentions.modules.kalshi_provider.sourcing import build_candidate_market_pool
+from agents.mentions.providers.kalshi.sourcing import build_candidate_market_pool
 
 
 def test_event_expansion_ignores_irrelevant_nonmention_seeds(monkeypatch):
@@ -20,11 +20,11 @@ def test_event_expansion_ignores_irrelevant_nonmention_seeds(monkeypatch):
         return {'markets': []}
 
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.search_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.search_markets_bundle',
         fake_search,
     )
     monkeypatch.setattr(
-        'agents.mentions.modules.kalshi_provider.sourcing.get_markets_bundle',
+        'agents.mentions.providers.kalshi.sourcing.get_markets_bundle',
         fake_get_markets_bundle,
     )
 

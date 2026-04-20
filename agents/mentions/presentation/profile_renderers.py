@@ -14,10 +14,11 @@ def build_output_profiles(query: str, analysis_profiles: dict) -> dict:
 
 
 def render_telegram_brief(query: str, analysis_profiles: dict) -> str:
-    thesis = _finalize_phrase(analysis_profiles.get('thesis', ''))
-    action = _humanize_action(_compress_action(_finalize_phrase(analysis_profiles.get('recommended_action', ''))))
-    why_now = _compress_why_now(_finalize_phrase(analysis_profiles.get('why_now', '')))
-    fair_value = _compress_fair_value(_finalize_phrase(analysis_profiles.get('fair_value_view', '')))
+    card = _analysis_card(analysis_profiles)
+    thesis = _finalize_phrase(card.get('thesis', ''))
+    action = _humanize_action(_compress_action(_finalize_phrase(card.get('action', ''))))
+    why_now = _compress_why_now(_finalize_phrase(_why_now_text(analysis_profiles, card)))
+    fair_value = _compress_fair_value(_finalize_phrase(card.get('fair_value_view', '')))
     strike_line = _render_strike_line(analysis_profiles)
     header = render_header(query, analysis_profiles)
     body = f"Тезис: {thesis}\nОриентир по вероятности/цене: {fair_value}\nПочему сейчас: {why_now}\nЧто делать: {action}"
@@ -27,16 +28,17 @@ def render_telegram_brief(query: str, analysis_profiles: dict) -> str:
 
 
 def render_trade_memo(query: str, analysis_profiles: dict) -> dict:
-    action = _compress_action(_finalize_phrase(analysis_profiles.get('recommended_action', '')))
-    thesis = _finalize_phrase(analysis_profiles.get('thesis', ''))
+    card = _analysis_card(analysis_profiles)
+    action = _compress_action(_finalize_phrase(card.get('action', '')))
+    thesis = _finalize_phrase(card.get('thesis', ''))
     rendered_query = render_header(query, analysis_profiles)
-    key_risk = _humanize_key_risk(_finalize_phrase(analysis_profiles.get('key_risk', '')))
-    invalidation = _humanize_invalidation(_finalize_phrase(analysis_profiles.get('invalidation', '')))
+    key_risk = _humanize_key_risk(_finalize_phrase(card.get('risk', '')))
+    invalidation = _humanize_invalidation(_finalize_phrase(card.get('next_check', '')))
     return {
         'query': rendered_query,
         'thesis': thesis,
-        'fair_value_view': _compress_fair_value(_finalize_phrase(analysis_profiles.get('fair_value_view', ''))),
-        'why_now': _compress_why_now(_finalize_phrase(analysis_profiles.get('why_now', ''))),
+        'fair_value_view': _compress_fair_value(_finalize_phrase(card.get('fair_value_view', ''))),
+        'why_now': _compress_why_now(_finalize_phrase(_why_now_text(analysis_profiles, card))),
         'key_risk': key_risk,
         'invalidation': invalidation,
         'recommended_action': _humanize_action(action),
@@ -46,13 +48,14 @@ def render_trade_memo(query: str, analysis_profiles: dict) -> dict:
 
 
 def render_investor_note(query: str, analysis_profiles: dict) -> str:
+    card = _analysis_card(analysis_profiles)
     rendered_query = render_header(query, analysis_profiles)
-    thesis = _finalize_phrase(analysis_profiles.get('thesis', ''))
-    fair_value = _compress_fair_value(_finalize_phrase(analysis_profiles.get('fair_value_view', '')))
-    why_now = _compress_why_now(_finalize_phrase(analysis_profiles.get('why_now', '')))
-    action = _humanize_action(_compress_action(_finalize_phrase(analysis_profiles.get('recommended_action', ''))))
-    key_risk = _humanize_key_risk(_finalize_phrase(analysis_profiles.get('key_risk', '')))
-    invalidation = _humanize_invalidation(_finalize_phrase(analysis_profiles.get('invalidation', '')))
+    thesis = _finalize_phrase(card.get('thesis', ''))
+    fair_value = _compress_fair_value(_finalize_phrase(card.get('fair_value_view', '')))
+    why_now = _compress_why_now(_finalize_phrase(_why_now_text(analysis_profiles, card)))
+    action = _humanize_action(_compress_action(_finalize_phrase(card.get('action', ''))))
+    key_risk = _humanize_key_risk(_finalize_phrase(card.get('risk', '')))
+    invalidation = _humanize_invalidation(_finalize_phrase(card.get('next_check', '')))
     strike_line = _render_strike_line(analysis_profiles)
     strike_block = f"\nСтрайки: {strike_line}" if strike_line else ''
     return (
@@ -150,3 +153,27 @@ def _render_strike_line(analysis_profiles: dict) -> str:
 
 def _humanize_action(text: str) -> str:
     return normalize_action_text(text)
+
+
+def _analysis_card(analysis_profiles: dict) -> dict:
+    analysis_profiles = analysis_profiles or {}
+    card = analysis_profiles.get('analysis_card') or {}
+    return {
+        'thesis': card.get('thesis', analysis_profiles.get('thesis', '')),
+        'fair_value_view': card.get('fair_value_view', analysis_profiles.get('fair_value_view', '')),
+        'action': card.get('action', analysis_profiles.get('recommended_action', '')),
+        'risk': card.get('risk', analysis_profiles.get('key_risk', '')),
+        'next_check': card.get('next_check', analysis_profiles.get('invalidation', '')),
+        'uncertainty': card.get('uncertainty', analysis_profiles.get('uncertainty', '')),
+        'evidence': card.get('evidence', analysis_profiles.get('evidence_points', [])),
+    }
+
+
+def _why_now_text(analysis_profiles: dict, card: dict) -> str:
+    why_now = analysis_profiles.get('why_now', '')
+    if why_now:
+        return why_now
+    evidence = card.get('evidence', [])
+    if isinstance(evidence, list) and evidence:
+        return '; '.join(str(item) for item in evidence[:2] if item)
+    return ''

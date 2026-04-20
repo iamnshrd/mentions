@@ -5,7 +5,7 @@ import sqlite3
 
 import pytest
 
-from library._core.analysis.heuristic_learn import (
+from mentions_domain.posteriors.heuristic_learn import (
     get_counts, posterior_ci, posterior_p, record_application,
     record_case_outcomes, reset_posterior, top_confident,
 )

@@ -5,8 +5,11 @@ import sqlite3
 
 import pytest
 
-from library._core.analysis.anti_patterns import (
-    apply_to_p_signal, check_anti_patterns,
+from agents.mentions.services.analysis.anti_patterns import (
+    check_anti_patterns,
+)
+from mentions_domain.analysis.anti_patterns import (
+    apply_anti_patterns_to_p_signal as apply_to_p_signal,
 )
 
 

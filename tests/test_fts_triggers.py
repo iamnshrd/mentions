@@ -133,7 +133,7 @@ class TestBackcompatWithSyncHelper:
         """sync_document still works (emergency rebuild): it should
         leave the FTS index consistent even when triggers already
         populated it."""
-        from library._core.kb.fts_sync import sync_document
+        from agents.mentions.storage.knowledge.fts_sync import sync_document
         with sqlite3.connect(tmp_db) as conn:
             conn.execute('PRAGMA foreign_keys = ON')
             doc = _insert_doc(conn)

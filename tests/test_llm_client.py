@@ -1,4 +1,4 @@
-"""Tests for library._core.llm.client.
+"""Tests for canonical LLM client helpers.
 
 Covers:
   * NullClient returns empty LLMResponse / None from complete_json
@@ -12,19 +12,19 @@ import pytest
 
 class TestNullClient:
     def test_complete_returns_empty(self):
-        from library._core.llm import NullClient, LLMResponse
+        from mentions_domain.llm import NullClient, LLMResponse
         r = NullClient().complete(system='s', user='u')
         assert isinstance(r, LLMResponse)
         assert r.text == ''
 
     def test_complete_json_returns_none(self):
-        from library._core.llm import NullClient
+        from mentions_domain.llm import NullClient
         assert NullClient().complete_json(system='s', user='u') is None
 
 
 class TestParseJsonText:
     def _parse(self, text):
-        from library._core.llm.client import _parse_json_text
+        from mentions_domain.llm.client import _parse_json_text
         return _parse_json_text(text)
 
     def test_empty_string(self):
@@ -65,7 +65,7 @@ class TestParseJsonText:
 class TestDefaultClient:
     def test_no_api_key_returns_null(self, monkeypatch):
         monkeypatch.delenv('ANTHROPIC_API_KEY', raising=False)
-        from library._core.llm import default_client, NullClient
+        from mentions_domain.llm import default_client, NullClient
         assert isinstance(default_client(), NullClient)
 
     def test_key_present_but_no_sdk_returns_null(self, monkeypatch):
@@ -76,7 +76,7 @@ class TestDefaultClient:
         saved = sys.modules.pop('anthropic', None)
         try:
             sys.modules['anthropic'] = None  # triggers ImportError on re-import
-            from library._core.llm import default_client, NullClient
+            from mentions_domain.llm import default_client, NullClient
             client = default_client()
             # Either NullClient (if SDK truly absent) or AnthropicClient (if
             # it is installed in the test env). Both are acceptable — the
