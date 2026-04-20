@@ -1,0 +1,480 @@
+{
+  "version": 1,
+  "default_language": "ru",
+  "principles": {
+    "russian_by_default": true,
+    "allow_english_market_terms_when_better": true,
+    "avoid_unnecessary_hybrid_phrasing": true,
+    "if_user_provided_exact_phrase_use_it_verbatim": true,
+    "prefer_clean_human_russian_over_literal_calques": true
+  },
+  "preferred_terms": [
+    "fair value",
+    "YES",
+    "NO",
+    "limit order",
+    "Q&A",
+    "ticker",
+    "live",
+    "entry",
+    "execution",
+    "pricing",
+    "market structure",
+    "no-trade"
+  ],
+  "preferred_replacements": [
+    {
+      "source": "broader patriotic framing",
+      "target": "более широкой патриотической риторике",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "pricing’ует Easter Egg Roll as another random Trump geopolitical rant opportunity",
+      "target": "оценивает Easter Egg Roll как ещё один повод для геополитических тирад Трампа",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "family-event paths",
+      "target": "семейные ветки",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "speech",
+      "target": "политической речи",
+      "notes": "Use this replacement in the specific earlier wording context requested by user."
+    },
+    {
+      "source": "event-specific themes",
+      "target": "тем, связанных с конкретным событием",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "passive no / aggressive yes",
+      "target": "пассивные NO / агрессивные YES",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "weak paths",
+      "target": "слабые ветки",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "live remarks",
+      "target": "живому выступлению",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "praise for troops / strength / sacrifice",
+      "target": "хвала солдатам / сила / самопожертвование",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "broad patriotic → troops → Iran",
+      "target": "широкий патриотический контекст → войска → Иран",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "patriotic → troops → Hormuz / Oil / Nuclear / Deal",
+      "target": "патриотический контекст → войска → Hormuz / Oil / Nuclear / Deal",
+      "notes": "Keep ticker-like English words when better."
+    },
+    {
+      "source": "This does not negate my overall read",
+      "target": "Это не отменяет мой общий тейк",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "family event means geopolitics dead",
+      "target": "это семейное мероприятие, значит геополитические страйки дохлые",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "maybe military / hero / strength-adjacent themes",
+      "target": "возможно, темы, связанные с военной тематикой, героями или силой",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "broader Iran references framed through troops/patriotism",
+      "target": "более общие упоминания об Иране, если они связаны с темой войск/патриотизма",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "Iran-war framing",
+      "target": "связанные с Ираном страйки",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "too long off-script bridge",
+      "target": "слишком длинный офф-топик мостик",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Event read",
+      "target": "Разбор события",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Not a real policy event and not a normal press event.",
+      "target": "Не полноценное политическое мероприятие и не пресс-конференция.",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "So the baseline here is",
+      "target": "Поэтому базовая линия здесь",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "where the path looks stretched",
+      "target": "где страйки выглядят переоцененными",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "or just overpriced themes",
+      "target": "или вообще переоцененные темы",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "this is not broad drift",
+      "target": "это не сильное отклонение",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "not just political drift",
+      "target": "не просто отклонение в политику",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "but the path is wider",
+      "target": "но рамка шире",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "drifts into Iran / conflict / macro rant",
+      "target": "уходит в Иран / Конфликт / Макро тирады",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "but the cleaner read is still in `Hormuz`",
+      "target": "но проще всё же в `Hormuz`",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Price-sensitive / mixed",
+      "target": "Чувствительные к цене / Смешаные",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "through a broader geopolitical / negotiation brag",
+      "target": "через общий геополитический / переговорный нарратив",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "this is not as clean a fade",
+      "target": "это уже не такой чистый NO",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "not the best short bucket; only if price really gifts you entry",
+      "target": "не лучшая NO корзина, только если цена не подарочная",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Bottom line by bucket",
+      "target": "Итого по корзинам",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Best basket",
+      "target": "Лучшая корзина",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Medium / selective",
+      "target": "Средняя / Избирательно",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Base idea here is not to sell everything, but to sell weak paths",
+      "target": "Базовая идея здесь — не покупать все подряд NO, а шортить слабые направления тем",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Trump broad drift",
+      "target": "отклонение от скрипта у Трампа",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "paying too much for weak paths",
+      "target": "слишком сильно платит за слабые направления, куда Трамп может уйти",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "bad archetype for aggressively paying for detailed geopolitics strikes",
+      "target": "плохой архетип для того, чтобы агрессивно платить за детальные геополитические страйки",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "spread across basket",
+      "target": "разложить по корзинам",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "edge here is in structure / format mismatch",
+      "target": "эдж здесь в несоответствии структуры / формата",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "wide political drift",
+      "target": "широким отклонением в сторону политики",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "the weakest bucket still remains weak",
+      "target": "слабейшая корзина всё ещё остаётся слабой",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "I like the idea of selling not geopolitics broadly, but specifically weak paths",
+      "target": "мне нравится идея шортить не геополитику вообще, а именно слабые направления тем",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "natural Iran core",
+      "target": "естественное ядро, связанное с Ираном",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "high chance of broad political drift",
+      "target": "высокий шанс широкой политической тирады",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "reporter-driven expansion of the topic tree",
+      "target": "расширение дерева тем благодаря репортерам",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "26APR01",
+      "target": "название рынка надо отображать обычным читаемым title",
+      "notes": "Do not show raw market shorthand when a readable event title is better."
+    },
+    {
+      "source": "that the market is dragging geopolitics too high",
+      "target": "что он тащит геополитику слишком высоко",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Core yes basket",
+      "target": "основная YES корзина",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "where the path is",
+      "target": "у которых направление тем",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "both in opening remarks and in Q&A",
+      "target": "и в опенинге, и в Q&A",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Strong but more fragile yes basket",
+      "target": "Сильная, но более уязвимая YES корзина",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "but their path",
+      "target": "но их направление",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Trump builds the narrative and reporters widen the discussion",
+      "target": "Трамп строит нарратив и как репортеры расширяют обсуждение",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "more like yes only if price still sane, not an auto-buy",
+      "target": "скорее всего YES, но только если цена останется разумной; не стоит покупать автоматически",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Late-path / Q&A basket",
+      "target": "поздние темы / Q&A корзина",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "core opening basket",
+      "target": "основная опенинг корзина",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "specific reporter path",
+      "target": "конкретное направление от репортеров",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "this is the classic case where not said in opening does not mean dead",
+      "target": "это типичный случай, где “не сказано в опенинг ещё не значит “мёртво”",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "price discipline and live repricing work best here",
+      "target": "лучше всего тут работает ценовая дисциплина и динамическое переоценка",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "partly",
+      "target": "частично",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "narrower and more specific branches",
+      "target": "более узкие и специфичные ветки",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "this is where the best fade / selective NO often is if the market is too aggressive",
+      "target": "именно здесь чаще всего и будет лучший шорт / избирательные NO, если рынок слишком агрессивен",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "The main risk here is not underrating Iran core.",
+      "target": "Главный риск здесь — не недооценивать потенциал Ирана",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "as if they all have the same path depth",
+      "target": "как будто у них одинаковая глубина направления тем.",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "core basket is deservedly expensive",
+      "target": "основная корзина заслуженно дорогая",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "late-path basket needs more discipline",
+      "target": "корзина с поздними страйками требует больше дисциплины",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "core yeses — only if price is not already destroyed",
+      "target": "основные YES, только если цена ещё не убита",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "late-path names — better not to buy blindly pre-event",
+      "target": "поздние страйки лучшене покупать вслепую пре-ивент",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "detail-heavy names are the best candidates for passive NO",
+      "target": "узко-нарративные страйки — лучшие кандидаты на пассивные NO",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Cleanest structural read",
+      "target": "Короткий структурный разбор",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "do not overpay for the second line",
+      "target": "не переплачивать за поздние страйки",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "short the too-narrow details",
+      "target": "шортить слишком узко-нарративные страйки",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "Trump immediately goes into a very wide, chaotic geopolitical rant",
+      "target": "Трамп сразу идёт в очень широкие, хаотичные геополитические тирады",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "reporters quickly open more detailed branches",
+      "target": "репортеры слишком быстро открывают более детальные ветки тем",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "some detail-heavy names suddenly become a direct topic from one question",
+      "target": "часть узко-нарративных страйков неожиданно становится прямой темой из-за одного вопроса",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "split direct topics",
+      "target": "разделять очевидные темы",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "real press conference",
+      "target": "реальная пресс-конференция",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "they often need a specific",
+      "target": "им часто нужно конкретное",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "This is a market where the cleanest logic is to",
+      "target": "Это рынок, где логичнее всего",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "long core basket",
+      "target": "лонговать основную корзину",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "short detail-heavy basket",
+      "target": "шортить узко-нарративную корзину",
+      "notes": "Use this exact replacement."
+    },
+    {
+      "source": "detailed geopolitics strikes",
+      "target": "детальные геополитические страйки",
+      "notes": "Use this exact spaced form."
+    },
+    {
+      "source": "troops",
+      "target": "войска",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "heroism",
+      "target": "героизм",
+      "notes": "Use exactly."
+    },
+    {
+      "source": "Iran / conflict",
+      "target": "Иран\\Конфликт",
+      "notes": "Use exactly when referring to the combined phrase."
+    }
+  ],
+  "formatting_rules": {
+    "strike_labels": {
+      "show_only_human_label_not_ticker_prefix": true,
+      "render_label_in_monospace": true,
+      "example": {
+        "avoid": "SETT — Settle / Deal",
+        "prefer": "`Deal`"
+      }
+    },
+    "avoid_tables_on_chat_surfaces": true,
+    "prefer_compact_investor_memo_style_when_requested": true
+  },
+  "avoid_terms": [
+    "детальныегеополитические",
+    "ugly hybrid russian-english phrasing",
+    "literal machine-translated calques when a cleaner Russian phrase exists"
+  ],
+  "usage_notes": [
+    "When a wording rule exists here, follow it before improvising.",
+    "Do not 'improve' user-approved phrasing.",
+    "If a phrase is not covered, prefer clean Russian unless the English market term is genuinely better.",
+    "For investor-style writeups, keep language compressed, explicit, and low on jargon drift."
+  ]
+}

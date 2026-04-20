@@ -1,6 +1,8 @@
 # Environment
 .env
 *.env
+gateway/openclaw.local.json5
+gateway/openclaw.local.json5.bak*
 
 # Python
 __pycache__/
@@ -8,6 +10,9 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.egg-info/
 dist/
 build/
@@ -38,6 +43,9 @@ library/failed/
 
 # Workspace state (per-user runtime)
 workspace/
+openclaw-workspace/state/
+.openclaw/
+openclaw-workspace/.openclaw/
 
 # Dashboard output (generated)
 dashboard/

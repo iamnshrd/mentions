@@ -1,11 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "mentions"
-version = "0.2.0"
-description = "Kalshi prediction market analyst agent"
+name = "mentions-core"
+version = "0.14.7"
+description = "Local Mentions runtime and tooling, designed to be mounted behind OpenClaw Gateway."
 requires-python = ">=3.11"
+readme = "README.md"
+dependencies = []
+
+[project.scripts]
+mentionsctl = "mentions_core.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["mentions_core*", "agents*", "library*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra -q"
 
 [tool.ruff]
@@ -14,4 +30,4 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
-ignore = ["E501"]  # line length enforced softly
+ignore = ["E501"]

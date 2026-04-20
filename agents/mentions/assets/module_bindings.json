@@ -1,0 +1,7 @@
+{
+  "frame_selector": "default",
+  "retrieval_bundle_builder": "default",
+  "ticker_retriever": "default",
+  "analysis_engine": "default",
+  "response_renderer": "default"
+}
