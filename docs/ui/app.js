@@ -1,14 +1,10 @@
 // v3 App shell — NotebookLM-inspired warm rounded layout
 function App() {
-  const [variant, setVariant] = React.useState(
-    localStorage.getItem('mentionless-variant') || 'calmer'
-  );
+  const variant = 'notebook';
   const [selectedSource, setSelectedSource] = React.useState(null);
   const [debugOpen, setDebugOpen] = React.useState(false);
 
   const theme = window.getTheme(variant);
-
-  React.useEffect(() => { localStorage.setItem('mentionless-variant', variant); }, [variant]);
 
   const [winWidth, setWinWidth] = React.useState(window.innerWidth);
   React.useEffect(() => {
