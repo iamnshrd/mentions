@@ -31,9 +31,9 @@ def test_cli_prompt_still_works(capsys):
 
 def test_cli_loads_dotenv_from_cwd(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv('OPENCLAW_PROGRESS_REPEAT_STUCK_THRESHOLD', raising=False)
+    monkeypatch.delenv('MENTIONS_PROGRESS_REPEAT_STUCK_THRESHOLD', raising=False)
     (tmp_path / '.env').write_text(
-        'OPENCLAW_PROGRESS_REPEAT_STUCK_THRESHOLD=9\n',
+        'MENTIONS_PROGRESS_REPEAT_STUCK_THRESHOLD=9\n',
         encoding='utf-8',
     )
     code = main(['packs'])

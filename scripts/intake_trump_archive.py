@@ -4,9 +4,10 @@ import json
 import re
 from pathlib import Path
 
+from agents.mentions.config import PROJECT
 from agents.mentions.ingest.manual_transcript import ingest_manual_transcript
 
-ARCHIVE_DIR = Path('/root/.openclaw/multi-agent/agents/mentions/repo/tmp_manual_transcripts/trump_archive/Trump')
+ARCHIVE_DIR = PROJECT / 'tmp_manual_transcripts' / 'trump_archive' / 'Trump'
 SPEAKER = 'Donald Trump'
 
 

@@ -6,7 +6,7 @@ Pipeline:
 3. Write structured JSON to dashboard/latest_analysis.json
 4. Log checkpoint for each market analyzed
 
-Designed to run via cron or OpenClaw scheduler:
+Designed to run via cron or the built-in runtime scheduler:
     python -m mentions_core schedule mentions run
 """
 from __future__ import annotations

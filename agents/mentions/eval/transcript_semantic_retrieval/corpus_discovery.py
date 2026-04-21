@@ -7,9 +7,10 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from agents.mentions.config import PROJECT
 from agents.mentions.services.transcripts.semantic_retrieval.client import embed_texts, worker_health
 
-DB_PATH = Path('/root/.openclaw/multi-agent/agents/mentions/repo/workspace/mentions/mentions_runtime.db')
+DB_PATH = PROJECT / 'workspace' / 'mentions' / 'mentions_runtime.db'
 
 
 def sample_segments(speaker: str = 'Donald Trump', limit: int = 200, per_transcript: int = 3) -> list[dict]:

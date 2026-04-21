@@ -30,7 +30,10 @@
 <script type="text/babel" src="./ui/panels-inspector.js"></script>
 <script type="text/babel" src="./ui/app.js"></script>
 <script type="text/babel">
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+(async function bootstrapWorkspace() {
+  await window.loadWorkspaceData();
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+})();
 </script>
 </body>
 </html>

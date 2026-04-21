@@ -41,5 +41,5 @@ GDELT_DOC_API_URL = 'https://api.gdeltproject.org/api/v2/doc/doc'
 
 
 def get_default_store():
-    """Return the shared OpenClaw state store for this pack."""
+    """Return the shared state store for this pack."""
     return get_base_store()

@@ -1,4 +1,4 @@
-"""Generic progress-state estimation for OpenClaw sessions.
+"""Generic progress-state estimation for runtime sessions.
 
 Reads the checkpoint log and continuity summary to determine whether the user
 is stuck on the same topic, making progress (resolved loops), or in a

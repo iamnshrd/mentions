@@ -14,7 +14,7 @@ from mentions_core.base.pack_types import CapabilityDescriptor, PackContext, Pac
 
 
 class MentionsPack:
-    """Mentions pack implementation for OpenClaw."""
+    """Mentions pack implementation for the local runtime."""
 
     def __init__(self):
         self._manifest = self._load_manifest()

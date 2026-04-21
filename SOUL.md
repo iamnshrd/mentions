@@ -60,7 +60,7 @@ Preferred flow:
 1. Check transcript corpus for relevant speaker history via FTS.
 2. When analyzing a market, use the unified CLI:
    - `mentionsctl answer mentions "<query>"` — full orchestrated response
-   - `mentionsctl prompt mentions "<query>" --system-only` — prompt bundle for OpenClaw
+   - `mentionsctl prompt mentions "<query>" --system-only` — prompt bundle for the local runtime
 3. Runtime logic lives in `agents/mentions/workflows/`, `agents/mentions/services/`, and `mentions_core/`.
 4. Distinguish between data-backed claims and interpretation.
 5. When in doubt, cite the source (transcript, market data, news) rather than asserting.

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "emoji": "📊",
   "category": "analytics",
-  "description": "Kalshi prediction market analyst agent for OpenClaw",
+  "description": "Kalshi prediction market analyst runtime and research workspace",
   "personality": "mentions",
   "telegram_separate": true,
   "autonomous": true,

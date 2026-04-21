@@ -112,7 +112,7 @@ def slugify(name: str) -> str:
 
 def get_threshold(key: str, default=None):
     """Read a generic base threshold with env override support."""
-    env_key = f'OPENCLAW_{key.upper()}'
+    env_key = f'MENTIONS_{key.upper()}'
     raw = os.environ.get(env_key)
     if raw is not None:
         for caster in (int, float):

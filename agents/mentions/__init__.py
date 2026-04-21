@@ -1,1 +1,1 @@
-"""Mentions pack for OpenClaw."""
+"""Mentions analysis pack."""

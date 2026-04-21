@@ -7,7 +7,7 @@ This document defines the target modular architecture for `mentions`, using the 
 ## 1. Why this refactor exists
 
 The current `mentions` repo already has the right general direction:
-- OpenClaw as transport/runtime shell
+- `mentions_core` as runtime shell
 - local domain runtime behind it
 - pack/capability decomposition
 - separate workspace surface
@@ -53,8 +53,8 @@ Suggested modules:
 - `mentions_core.cli`
 - `mentions_core.scheduler`
 - `agents.mentions.pack`
-- OpenClaw prompt bridge
-- Telegram/render adapters
+- web/export adapters
+- presentation/render adapters
 
 These should not contain domain reasoning.
 

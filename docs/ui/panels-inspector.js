@@ -19,6 +19,8 @@ function InspectorPanel({ selectedSource }) {
 
   const lc = TRANSCRIPT_TRACE.lead_candidate;
   const rh = TRANSCRIPT_TRACE.retrieval_hits[0];
+  const transcriptExcerpt = TRANSCRIPT_TRACE.excerpt || (rh && rh.text) || '';
+  const excerptSpeaker = TRANSCRIPT_TRACE.excerpt_speaker || lc.speaker || (rh && rh.speaker) || '';
   const noSel = !selectedSource;
   const rankMatch = selectedSource?.headline
     ? RANKING_DEBUG.top_ranked.find(r => r.headline === selectedSource.headline) : null;
@@ -88,11 +90,11 @@ function InspectorPanel({ selectedSource }) {
                 fontFamily: t.fonts.mono, fontSize: '11px', lineHeight: 1.7, color: c.text,
               }}>
                 <div style={{ color: c.textTertiary, fontSize: '10px', marginBottom: '6px' }}>
-                  [{lc.start_ts}] {rh.speaker}
+                  [{lc.start_ts}] {excerptSpeaker}
                 </div>
-                "What we are doing today with More Perfect University is building something that has never existed before — a national network of young people who understand that the real fight is not left vs right, it is working people vs corporate oligarchy."
+                {transcriptExcerpt ? `"${transcriptExcerpt}"` : 'No transcript excerpt available yet.'}
                 <div style={{ color: c.textTertiary, fontSize: '10px', marginTop: '8px', fontStyle: 'italic', borderTop: `1px solid ${c.border}`, paddingTop: '6px' }}>
-                  Reconstructed from retrieval chunks — exact wording may differ
+                  Reconstructed from retrieval chunks when exact transcript text is unavailable
                 </div>
               </div>
 

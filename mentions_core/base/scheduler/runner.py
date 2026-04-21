@@ -1,4 +1,4 @@
-"""Generic scheduler dispatch for OpenClaw packs."""
+"""Generic scheduler dispatch for runtime packs."""
 from __future__ import annotations
 
 from mentions_core.base.registry import get_pack

@@ -1,7 +1,7 @@
 # Migration Guide
 
 Этот репозиторий больше не использует `library/` как runtime-слой.
-Также локальный runtime больше не использует имя `openclaw`, чтобы не конфликтовать с официальным OpenClaw Gateway.
+Также локальный runtime больше не использует старое transport-specific branding.
 
 ## CLI migration
 
@@ -22,15 +22,6 @@
 
 - старый путь: `python -m library schedule run`
 - новый путь: `python -m mentions_core schedule mentions run`
-
-## Gateway commands
-
-Официальный `openclaw` теперь используется только для upstream Gateway/transport-команд, например:
-
-- `openclaw onboard --install-daemon`
-- `openclaw gateway status`
-- `openclaw dashboard`
-- `openclaw agent --agent mentions --message "<query>"`
 
 ## Module migration
 

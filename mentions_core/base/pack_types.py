@@ -1,4 +1,4 @@
-"""Base pack contracts for pluggable OpenClaw agent packs."""
+"""Base pack contracts for pluggable runtime packs."""
 from __future__ import annotations
 
 import logging
@@ -47,7 +47,7 @@ class PackContext:
 
 @runtime_checkable
 class AgentPack(Protocol):
-    """Protocol implemented by every pack exposed through OpenClaw."""
+    """Protocol implemented by every pack exposed through the runtime."""
 
     def manifest(self) -> PackManifest:
         ...

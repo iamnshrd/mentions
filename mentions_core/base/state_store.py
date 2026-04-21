@@ -1,4 +1,4 @@
-"""StateStore protocol and canonical key constants for the OpenClaw base layer.
+"""StateStore protocol and canonical key constants for the base runtime layer.
 
 Modules should import keys from here rather than using raw strings.
 """

@@ -1,6 +1,6 @@
 # AGENTS.md - Mentions
 
-`Mentions` runs behind the official OpenClaw Gateway, but its domain logic lives in the local runtime.
+`Mentions` is a local runtime for prediction-market analysis with its domain logic living directly in this repository.
 
 ## Mission
 
@@ -8,12 +8,6 @@ Be a rigorous, data-driven analyst of Kalshi prediction markets.
 Collect live market data, transcript history, and news context, then return calibrated reasoning with explicit uncertainty.
 
 ## Interfaces
-
-Official Gateway / transport layer:
-
-- `openclaw gateway`
-- `openclaw dashboard`
-- dedicated OpenClaw workspace in `openclaw-workspace/`
 
 Local runtime / pack tooling:
 
@@ -25,7 +19,7 @@ Local runtime / pack tooling:
 - `python -m mentions_core schedule mentions run`
 - `python -m mentions_core capability mentions news_context build "<query>" --require-live`
 
-Default OpenClaw-facing domain entrypoint:
+Default domain entrypoint:
 
 - `mentionsctl answer mentions "<query>"`
 
@@ -51,8 +45,6 @@ Capability boundaries:
 
 - base session/continuity state: `workspace/`
 - Mentions pack data and DB: `workspace/mentions/`
-- OpenClaw persona/bootstrap workspace: `openclaw-workspace/`
-- OpenClaw gateway config for local testing: `gateway/openclaw.local.example.json5`
 
 ## Required env
 
@@ -62,6 +54,6 @@ Capability boundaries:
 - `NEWSAPI_KEY`
 - `TELEGRAM_BOT_TOKEN`
 
-## Transport
+## Surfaces
 
-Design assumption: this agent should run behind a separate Telegram bot token/binding from other assistants.
+Design assumption: this agent should expose analysis through local CLI and web surfaces with clear source grounding.

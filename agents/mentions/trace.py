@@ -8,10 +8,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from mentions_core.base.config import WORKSPACE
+
 log = logging.getLogger('mentions')
 
 
-TRACE_PATH = Path(os.getenv('MENTIONS_TRACE_LOG', '/root/.openclaw-mentions/logs/trace.jsonl'))
+TRACE_PATH = Path(
+    os.getenv('MENTIONS_TRACE_LOG', str(WORKSPACE / 'mentions' / 'trace.jsonl'))
+)
 
 
 def new_run_id() -> str:

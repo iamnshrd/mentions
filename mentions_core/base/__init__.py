@@ -1,1 +1,1 @@
-"""Reusable OpenClaw base framework."""
+"""Reusable base framework for the Mentions runtime."""

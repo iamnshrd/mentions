@@ -44,7 +44,7 @@ Must not own:
 
 - CLI wiring
 - filesystem/runtime bootstrapping
-- OpenClaw pack lifecycle code
+- external transport lifecycle code
 - pack-specific rendering or storage adapters
 
 ### `agents/mentions/`
