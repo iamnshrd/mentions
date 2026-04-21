@@ -166,8 +166,16 @@ function InspectorPanel({ selectedSource }) {
 function DebugDrawer({ isOpen, onToggle }) {
   const t = useTheme();
   const c = t.colors;
-  const db = DEBUG_VIEW;
-  const rk = RANKING_DEBUG;
+  const db = DEBUG_VIEW || {};
+  const rk = RANKING_DEBUG || {};
+  const runtimeHealth = db.runtime_health || {};
+  const newsRuntime = runtimeHealth.news || {};
+  const summary = db.summary || {};
+  const topEvidence = db.top_evidence || {};
+  const rankingSummary = rk.ranking_summary || {};
+  const typedCoverage = rk.typed_coverage || {};
+  const topRanked = Array.isArray(rk.top_ranked) ? rk.top_ranked : [];
+  const topRejected = Array.isArray(rk.top_rejected) ? rk.top_rejected : [];
   const lb = { fontSize: '9px', fontFamily: t.fonts.mono, fontWeight: 600, letterSpacing: '0.5px', color: c.textTertiary };
 
   return (
@@ -191,18 +199,18 @@ function DebugDrawer({ isOpen, onToggle }) {
           <span style={{
             padding: '2px 8px', fontSize: '9px', borderRadius: t.radiusPill,
             background: c.directBg, color: c.direct,
-          }}>{db.runtime_health.news.status === 'ok' ? 'OK' : '!'}</span>
+          }}>{newsRuntime.status === 'ok' ? 'OK' : '!'}</span>
           <span style={{ marginLeft: 'auto', fontSize: '10px' }}>
-            {rk.ranking_summary.kept_count}/{rk.ranking_summary.ranked_count} kept
+            {(rankingSummary.kept_count || 0)}/{(rankingSummary.ranked_count || 0)} kept
           </span>
         </div>
         {isOpen && (
           <div style={{ padding: '4px 16px 12px' }}>
             <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
               {[
-                ['News', db.summary.news_count], ['Transcripts', db.summary.transcript_count],
-                ['Ranked', rk.ranking_summary.ranked_count], ['Kept', rk.ranking_summary.kept_count],
-                ['Rejected', rk.ranking_summary.rejected_count], ['Mode', rk.typed_coverage.coverage_state],
+                ['News', summary.news_count || 0], ['Transcripts', summary.transcript_count || 0],
+                ['Ranked', rankingSummary.ranked_count || 0], ['Kept', rankingSummary.kept_count || 0],
+                ['Rejected', rankingSummary.rejected_count || 0], ['Mode', typedCoverage.coverage_state || 'empty'],
               ].map(([l, v], i) => (
                 <div key={i} style={{ padding: '6px 10px', background: c.surface, borderRadius: t.radiusSm, minWidth: '80px' }}>
                   <div style={lb}>{l}</div>
@@ -213,19 +221,27 @@ function DebugDrawer({ isOpen, onToggle }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div>
                 <div style={{ ...lb, marginBottom: '3px' }}>Kept</div>
-                {rk.top_ranked.map((r, i) => (
+                {topRanked.length ? topRanked.map((r, i) => (
                   <div key={i} style={{ fontFamily: t.fonts.mono, fontSize: '10px', color: c.text, lineHeight: 1.6 }}>
                     <span style={{ color: c.direct }}>●</span> {r.headline.substring(0, 42)}… <span style={{ color: c.accent }}>{r.final_relevance_score}</span>
                   </div>
-                ))}
+                )) : (
+                  <div style={{ fontFamily: t.fonts.mono, fontSize: '10px', color: c.textTertiary, lineHeight: 1.6 }}>
+                    No kept items
+                  </div>
+                )}
               </div>
               <div>
                 <div style={{ ...lb, marginBottom: '3px' }}>Rejected</div>
-                {rk.top_rejected.map((r, i) => (
+                {topRejected.length ? topRejected.map((r, i) => (
                   <div key={i} style={{ fontFamily: t.fonts.mono, fontSize: '10px', color: c.textTertiary, lineHeight: 1.6 }}>
                     <span style={{ color: c.risk }}>●</span> {r.headline.substring(0, 42)}… {r.final_relevance_score}
                   </div>
-                ))}
+                )) : (
+                  <div style={{ fontFamily: t.fonts.mono, fontSize: '10px', color: c.textTertiary, lineHeight: 1.6 }}>
+                    No rejected items
+                  </div>
+                )}
               </div>
             </div>
           </div>
