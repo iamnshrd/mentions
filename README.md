@@ -106,6 +106,13 @@ base, for example:
 https://iamnshrd.github.io/mentions/?api=http://127.0.0.1:8000
 ```
 
+To keep the UI responsive, the workspace endpoint uses a bounded response
+budget. Override it with:
+
+```bash
+MENTIONS_WORKSPACE_TIMEOUT_SEC=20 python -m mentions_core serve --host 127.0.0.1 --port 8000
+```
+
 ## Compatibility
 
 - локальный runtime CLI: `python -m mentions_core ...` или `mentionsctl ...`

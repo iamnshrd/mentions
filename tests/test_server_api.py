@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import TimeoutError as FutureTimeoutError
 import pytest
 
 pytest.importorskip('fastapi')
@@ -56,5 +57,29 @@ def test_server_workspace_endpoint_uses_error_contract(monkeypatch):
         'error': {
             'code': 'bad_request',
             'message': 'bad query',
+        },
+    }
+
+
+def test_server_workspace_endpoint_returns_timeout_contract(monkeypatch):
+    client = TestClient(create_app())
+
+    class TimeoutFuture:
+        def result(self, timeout=None):
+            raise FutureTimeoutError()
+
+    monkeypatch.setattr(
+        'mentions_core.server.routes.workspace._WORKSPACE_EXECUTOR',
+        type('Executor', (), {'submit': staticmethod(lambda *args, **kwargs: TimeoutFuture())})(),
+    )
+
+    response = client.post('/api/workspace', json={'query': 'slow query'})
+
+    assert response.status_code == 504
+    assert response.json() == {
+        'ok': False,
+        'error': {
+            'code': 'timeout',
+            'message': 'workspace request exceeded the response time budget',
         },
     }
