@@ -43,6 +43,22 @@ class AnalysisCapabilityService:
             args = parser.parse_args(argv)
             return api.run_autonomous_scan(dry_run=args.dry_run)
 
+        if action == 'workspace':
+            parser = argparse.ArgumentParser(prog='analysis workspace')
+            parser.add_argument('query')
+            parser.add_argument('--user-id', default='default')
+            parser.add_argument('--mode', choices=['query', 'url'], default='query')
+            parser.add_argument('--news-limit', type=int, default=5)
+            parser.add_argument('--transcript-limit', type=int, default=5)
+            args = parser.parse_args(argv)
+            return api.build_workspace(
+                args.query,
+                user_id=args.user_id,
+                mode=args.mode,
+                news_limit=args.news_limit,
+                transcript_limit=args.transcript_limit,
+            )
+
         raise SystemExit(f'Unknown analysis action: {action}')
 
 

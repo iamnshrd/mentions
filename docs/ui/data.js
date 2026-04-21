@@ -164,6 +164,7 @@
 
   function normalizeWorkspaceData(payload) {
     const raw = ensureObject(payload);
+    const hasOwn = (key) => Object.prototype.hasOwnProperty.call(raw, key);
     const analysisCard = ensureObject(raw.analysis_card);
     const transcriptTrace = ensureObject(raw.transcript_trace);
     const leadCandidate = ensureObject(transcriptTrace.lead_candidate);
@@ -218,12 +219,30 @@
       evidence_sources: ensureArray(raw.evidence_sources),
     };
 
-    if (!normalized.direct_event_news.length) normalized.direct_event_news = DEFAULT_WORKSPACE_DATA.direct_event_news;
-    if (!normalized.background_news.length) normalized.background_news = DEFAULT_WORKSPACE_DATA.background_news;
-    if (!normalized.transcript_trace.retrieval_hits.length) normalized.transcript_trace.retrieval_hits = DEFAULT_WORKSPACE_DATA.transcript_trace.retrieval_hits;
-    if (!Object.keys(normalized.ranking_debug).length) normalized.ranking_debug = DEFAULT_WORKSPACE_DATA.ranking_debug;
-    if (!normalized.context_risks.length) normalized.context_risks = DEFAULT_WORKSPACE_DATA.context_risks;
-    if (!Object.keys(normalized.debug_view).length) normalized.debug_view = DEFAULT_WORKSPACE_DATA.debug_view;
+    if (!hasOwn('direct_event_news') && !normalized.direct_event_news.length) {
+      normalized.direct_event_news = DEFAULT_WORKSPACE_DATA.direct_event_news;
+    }
+    if (!hasOwn('background_news') && !normalized.background_news.length) {
+      normalized.background_news = DEFAULT_WORKSPACE_DATA.background_news;
+    }
+    if (
+      !hasOwn('transcript_trace')
+      && !normalized.transcript_trace.retrieval_hits.length
+    ) {
+      normalized.transcript_trace.retrieval_hits = DEFAULT_WORKSPACE_DATA.transcript_trace.retrieval_hits;
+      normalized.transcript_trace.excerpt = DEFAULT_WORKSPACE_DATA.transcript_trace.excerpt;
+      normalized.transcript_trace.excerpt_speaker = DEFAULT_WORKSPACE_DATA.transcript_trace.excerpt_speaker;
+      normalized.transcript_trace.lead_candidate = DEFAULT_WORKSPACE_DATA.transcript_trace.lead_candidate;
+    }
+    if (!hasOwn('ranking_debug') && !Object.keys(normalized.ranking_debug).length) {
+      normalized.ranking_debug = DEFAULT_WORKSPACE_DATA.ranking_debug;
+    }
+    if (!hasOwn('context_risks') && !normalized.context_risks.length) {
+      normalized.context_risks = DEFAULT_WORKSPACE_DATA.context_risks;
+    }
+    if (!hasOwn('debug_view') && !Object.keys(normalized.debug_view).length) {
+      normalized.debug_view = DEFAULT_WORKSPACE_DATA.debug_view;
+    }
     if (!normalized.evidence_sources.length) normalized.evidence_sources = buildEvidenceSources(normalized);
 
     return normalized;
@@ -232,6 +251,7 @@
   function hydrateWorkspaceGlobals(payload) {
     const normalized = normalizeWorkspaceData(payload);
     window.__WORKSPACE_DATA__ = normalized;
+    window.__WORKSPACE_SOURCE__ = payload === DEFAULT_WORKSPACE_DATA ? 'demo' : 'runtime';
     window.QUERY = normalized.query;
     window.ANALYSIS_CARD = normalized.analysis_card;
     window.DIRECT_NEWS = normalized.direct_event_news;

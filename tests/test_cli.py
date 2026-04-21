@@ -40,3 +40,19 @@ def test_cli_loads_dotenv_from_cwd(tmp_path, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert code == 0
     assert 'mentions' in captured.out
+
+
+def test_cli_workspace_writes_payload(tmp_path, capsys):
+    output = tmp_path / 'workspace-data.json'
+    code = main([
+        'workspace',
+        'What will Bernie Sanders say at the More Perfect University Kick Off Call?',
+        '--output', str(output),
+    ])
+    captured = capsys.readouterr()
+    assert code == 0
+    assert str(output) in captured.out
+    assert output.exists()
+    text = output.read_text(encoding='utf-8')
+    assert '"analysis_card"' in text
+    assert '"ranking_debug"' in text

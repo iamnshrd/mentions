@@ -33,6 +33,20 @@ def run_autonomous_scan(dry_run: bool = False) -> dict:
     return run_autonomous(dry_run=dry_run)
 
 
+def build_workspace(query: str, user_id: str = 'default',
+                    mode: str = 'query', news_limit: int = 5,
+                    transcript_limit: int = 5) -> dict:
+    from agents.mentions.presentation.workspace_payload import build_workspace_payload
+
+    return build_workspace_payload(
+        query,
+        user_id=user_id,
+        mode=mode,
+        news_limit=news_limit,
+        transcript_limit=transcript_limit,
+    )
+
+
 def _apply_wording(result: dict) -> dict:
     response = result.get('response')
     if not response:
@@ -48,5 +62,10 @@ def _apply_wording(result: dict) -> dict:
     }
     return updated
 
-
-__all__ = ['build_prompt', 'run_autonomous_scan', 'run_query', 'run_url']
+__all__ = [
+    'build_prompt',
+    'build_workspace',
+    'run_autonomous_scan',
+    'run_query',
+    'run_url',
+]

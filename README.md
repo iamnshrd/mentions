@@ -69,6 +69,28 @@ mentionsctl answer mentions "<query>"
 - Mentions pack data: `workspace/mentions/`
 - generated dashboard output: `dashboard/mentions/`
 
+## Web workspace payload
+
+GitHub Pages UI lives in `docs/` and can consume a real runtime snapshot instead
+of demo data.
+
+Generate a workspace payload for the site:
+
+```bash
+python -m mentions_core workspace "What will Bernie Sanders say at the More Perfect University Kick Off Call?" \
+  --output docs/ui/workspace-data.json
+```
+
+Equivalent helper:
+
+```bash
+python scripts/export_workspace_payload.py "What will Bernie Sanders say at the More Perfect University Kick Off Call?" \
+  --output docs/ui/workspace-data.json
+```
+
+After committing and pushing `docs/ui/workspace-data.json`, the Pages site will
+load that runtime snapshot automatically.
+
 ## Compatibility
 
 - локальный runtime CLI: `python -m mentions_core ...` или `mentionsctl ...`

@@ -1,0 +1,121 @@
+{
+  "query": "What will Bernie Sanders say at the More Perfect University Kick Off Call?",
+  "analysis_card": {
+    "thesis": "Для этого запроса пока нет достаточного source context, чтобы собрать структурный analysis card.",
+    "evidence": [],
+    "uncertainty": "Query does not match known market routes.",
+    "risk": "Без transcript-backed и event-specific подтверждения вывод может остаться слишком общим.",
+    "next_check": "Сначала собрать direct event coverage или transcript evidence по событию.",
+    "action": "Использовать source inspection и context review до появления более сильного structured analysis.",
+    "fair_value_view": "Fair value view недоступен, пока запрос не привязан к market-analysis маршруту."
+  },
+  "direct_event_news": [],
+  "background_news": [],
+  "transcript_trace": {
+    "lead_candidate": {
+      "transcript_id": "",
+      "segment_index": "",
+      "source_ref": "",
+      "event_title": "What will Bernie Sanders say at the More Perfect University Kick Off Call?",
+      "event_date": "",
+      "start_ts": "",
+      "end_ts": "",
+      "speaker": ""
+    },
+    "top_candidates": [],
+    "retrieval_hits": [],
+    "excerpt": "",
+    "excerpt_speaker": ""
+  },
+  "ranking_debug": {
+    "status": "unavailable",
+    "freshness": "missing",
+    "sufficiency": "weak",
+    "provider_coverage": {
+      "rss_status": "disabled",
+      "rss_count": 0,
+      "google_news_status": "unavailable",
+      "google_news_count": 0
+    },
+    "ranking_summary": {
+      "ranked_count": 0,
+      "kept_count": 0,
+      "rejected_count": 0,
+      "final_news_count": 0
+    },
+    "typed_coverage": {
+      "coverage_state": "empty",
+      "core_count": 0,
+      "expansion_count": 0,
+      "ambient_count": 0
+    },
+    "context_risks": [
+      "no-news-context",
+      "missing-fresh-news",
+      "weak-news-context"
+    ],
+    "quality_signals": {
+      "provider_status": "unavailable",
+      "freshness": "missing",
+      "sufficiency": "weak",
+      "coverage_state": "empty",
+      "has_ranked_hits": false,
+      "has_kept_hits": false,
+      "lead_score": 0,
+      "lead_decision": ""
+    },
+    "lead_news": {},
+    "top_ranked": [],
+    "top_rejected": []
+  },
+  "context_risks": [
+    "no-news-context",
+    "missing-fresh-news",
+    "weak-news-context"
+  ],
+  "debug_view": {
+    "summary": {
+      "sources_used": [
+        "news",
+        "transcripts"
+      ],
+      "news_count": 0,
+      "transcript_count": 0,
+      "has_market_data": false,
+      "has_history": false
+    },
+    "runtime_health": {},
+    "context_risks": {
+      "news": [
+        "no-news-context",
+        "missing-fresh-news",
+        "weak-news-context"
+      ],
+      "transcripts": []
+    },
+    "top_evidence": {
+      "lead_transcript": {
+        "transcript_id": "",
+        "segment_index": "",
+        "source_ref": "",
+        "event_title": "What will Bernie Sanders say at the More Perfect University Kick Off Call?",
+        "event_date": "",
+        "start_ts": "",
+        "end_ts": "",
+        "speaker": ""
+      },
+      "transcript_candidates": [],
+      "retrieval_hits": [],
+      "news_items": []
+    },
+    "status": {
+      "news": {
+        "status": "unavailable",
+        "freshness": "missing",
+        "sufficiency": "weak",
+        "coverage_state": "empty"
+      }
+    }
+  },
+  "evidence_sources": []
+}

@@ -69,6 +69,15 @@ function App() {
               fontFamily: theme.fonts.mono, fontSize: '10px', color: c.textTertiary,
             }}>Research Workspace</span>
             <div style={{
+              padding: '4px 10px', borderRadius: theme.radiusPill,
+              background: window.__WORKSPACE_SOURCE__ === 'runtime' ? c.directBg : c.backgroundBg,
+              fontSize: '10px', fontFamily: theme.fonts.mono,
+              color: window.__WORKSPACE_SOURCE__ === 'runtime' ? c.direct : c.textSecondary,
+              fontWeight: 600,
+            }}>
+              {window.__WORKSPACE_SOURCE__ === 'runtime' ? 'LIVE DATA' : 'DEMO DATA'}
+            </div>
+            <div style={{
               padding: '4px 12px', borderRadius: theme.radiusPill,
               background: c.surface, fontSize: '11px', fontFamily: theme.fonts.body,
               color: c.textSecondary, fontWeight: 500,

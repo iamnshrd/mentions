@@ -82,11 +82,16 @@ function SourcePanel({ selectedSource, onSelectSource }) {
   const t = useTheme();
   const c = t.colors;
   const variant = useVariant();
+  const transcriptHits = Array.isArray(TRANSCRIPT_TRACE.retrieval_hits) ? TRANSCRIPT_TRACE.retrieval_hits : [];
+  const leadTranscript = TRANSCRIPT_TRACE.lead_candidate || {};
+  const transcriptAvailable = Boolean(
+    leadTranscript.transcript_id || leadTranscript.source_ref || transcriptHits.length
+  );
 
   const transcriptItem = {
     type: 'transcript',
-    ...TRANSCRIPT_TRACE.lead_candidate,
-    speaker: TRANSCRIPT_TRACE.retrieval_hits[0].speaker,
+    ...leadTranscript,
+    speaker: (transcriptHits[0] && transcriptHits[0].speaker) || leadTranscript.speaker || '',
   };
 
   const isSourceSelected = (item) => {
@@ -120,7 +125,7 @@ function SourcePanel({ selectedSource, onSelectSource }) {
             marginLeft: 'auto', fontFamily: t.fonts.mono, fontSize: '11px',
             color: c.textTertiary, background: c.surfaceAlt,
             padding: '2px 8px', borderRadius: t.radiusPill,
-          }}>{DIRECT_NEWS.length + BACKGROUND_NEWS.length + 1}</span>
+          }}>{DIRECT_NEWS.length + BACKGROUND_NEWS.length + (transcriptAvailable ? 1 : 0)}</span>
         </div>
 
         {/* Scrollable */}
@@ -131,9 +136,11 @@ function SourcePanel({ selectedSource, onSelectSource }) {
               onClick={() => onSelectSource(n)} t={t} c={c} variant={variant} />
           ))}
 
-          <SourceGroupHeader icon="▸" label="Transcript" count={1} color={c.transcript} t={t} c={c} />
-          <SourceCard item={transcriptItem} isSelected={isSourceSelected(transcriptItem)} isTranscript={true}
-            onClick={() => onSelectSource(transcriptItem)} t={t} c={c} variant={variant} />
+          <SourceGroupHeader icon="▸" label="Transcript" count={transcriptAvailable ? 1 : 0} color={c.transcript} t={t} c={c} />
+          {transcriptAvailable && (
+            <SourceCard item={transcriptItem} isSelected={isSourceSelected(transcriptItem)} isTranscript={true}
+              onClick={() => onSelectSource(transcriptItem)} t={t} c={c} variant={variant} />
+          )}
 
           <SourceGroupHeader icon="◇" label="Background" count={BACKGROUND_NEWS.length} color={c.textSecondary} t={t} c={c} />
           {BACKGROUND_NEWS.map((n, i) => (

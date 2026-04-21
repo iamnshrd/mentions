@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from mentions_core.base.logging_config import setup as setup_logging
 from mentions_core.base.registry import get_pack, list_packs
@@ -107,6 +108,28 @@ def cmd_health(_args):
     _print_payload(runtime_validation_report())
 
 
+def cmd_workspace(args):
+    from agents.mentions.interfaces.capabilities.analysis.api import build_workspace
+
+    payload = build_workspace(
+        args.query,
+        user_id=args.user_id,
+        mode=args.mode,
+        news_limit=args.news_limit,
+        transcript_limit=args.transcript_limit,
+    )
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding='utf-8',
+        )
+        _print_payload({'output': str(output_path), 'query': args.query})
+        return
+    _print_payload(payload)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog='python -m mentions_core',
@@ -151,6 +174,15 @@ def build_parser():
 
     p_health = sub.add_parser('health', help='Show runtime infrastructure health')
     p_health.set_defaults(func=cmd_health)
+
+    p_workspace = sub.add_parser('workspace', help='Build a research-workspace payload for the web UI')
+    p_workspace.add_argument('query')
+    p_workspace.add_argument('--user-id', default='default')
+    p_workspace.add_argument('--mode', choices=['query', 'url'], default='query')
+    p_workspace.add_argument('--news-limit', type=int, default=5)
+    p_workspace.add_argument('--transcript-limit', type=int, default=5)
+    p_workspace.add_argument('--output')
+    p_workspace.set_defaults(func=cmd_workspace)
 
     return parser
 
