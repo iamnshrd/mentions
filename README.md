@@ -33,6 +33,7 @@ python -m mentions_core capability mentions transcripts ingest auto
 python -m mentions_core capability mentions analysis url "<kalshi-url>"
 python -m mentions_core capability mentions news_context build "<query>" --require-live
 python -m mentions_core schedule mentions run --dry-run
+python -m mentions_core serve --host 127.0.0.1 --port 8000
 ```
 
 Для локальных conversational turns удобнее всего:
@@ -90,6 +91,13 @@ python scripts/export_workspace_payload.py "What will Bernie Sanders say at the 
 
 After committing and pushing `docs/ui/workspace-data.json`, the Pages site will
 load that runtime snapshot automatically.
+
+To run the HTTP backend locally, install the web extra:
+
+```bash
+python -m pip install -e '.[web]'
+python -m mentions_core serve --host 127.0.0.1 --port 8000
+```
 
 ## Compatibility
 

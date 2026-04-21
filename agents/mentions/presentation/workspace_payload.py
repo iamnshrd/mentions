@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from agents.mentions.interfaces.capabilities.analysis.api import run_query, run_url
 from agents.mentions.interfaces.capabilities.news_context.api import build_context
 from agents.mentions.interfaces.capabilities.transcripts.api import search_transcripts
 from agents.mentions.presentation.debug_view import build_debug_view
@@ -11,6 +10,8 @@ def build_workspace_payload(query: str, *, user_id: str = 'default',
                             mode: str = 'query',
                             news_limit: int = 5,
                             transcript_limit: int = 5) -> dict:
+    from agents.mentions.interfaces.capabilities.analysis.api import run_query, run_url
+
     if mode == 'url':
         analysis_result = ensure_dict(run_url(query, user_id=user_id))
     else:
@@ -349,4 +350,3 @@ def _dedupe_strings(values: list[str]) -> list[str]:
         seen.add(candidate)
         out.append(candidate)
     return out
-

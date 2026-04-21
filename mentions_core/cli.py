@@ -130,6 +130,22 @@ def cmd_workspace(args):
     _print_payload(payload)
 
 
+def cmd_serve(args):
+    try:
+        import uvicorn
+    except ImportError as exc:  # pragma: no cover - depends on optional web extra
+        raise SystemExit(
+            "Uvicorn is not installed. Install the web extra: pip install -e '.[web]'"
+        ) from exc
+
+    uvicorn.run(
+        'mentions_core.server.app:app',
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+    )
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog='python -m mentions_core',
@@ -183,6 +199,12 @@ def build_parser():
     p_workspace.add_argument('--transcript-limit', type=int, default=5)
     p_workspace.add_argument('--output')
     p_workspace.set_defaults(func=cmd_workspace)
+
+    p_serve = sub.add_parser('serve', help='Run the Mentions HTTP API server')
+    p_serve.add_argument('--host', default='127.0.0.1')
+    p_serve.add_argument('--port', type=int, default=8000)
+    p_serve.add_argument('--reload', action='store_true')
+    p_serve.set_defaults(func=cmd_serve)
 
     return parser
 

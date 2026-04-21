@@ -1,6 +1,10 @@
 """Canonical analysis capability API entrypoint."""
 from __future__ import annotations
 
+from agents.mentions.application.workspace_service import (
+    build_workspace_payload_for_market_url,
+    build_workspace_payload_for_query,
+)
 from agents.mentions.interfaces.capabilities.wording.api import check_text as check_wording
 from agents.mentions.workflows.scheduling import run_autonomous
 from agents.mentions.workflows.orchestrator import (
@@ -36,12 +40,16 @@ def run_autonomous_scan(dry_run: bool = False) -> dict:
 def build_workspace(query: str, user_id: str = 'default',
                     mode: str = 'query', news_limit: int = 5,
                     transcript_limit: int = 5) -> dict:
-    from agents.mentions.presentation.workspace_payload import build_workspace_payload
-
-    return build_workspace_payload(
+    if mode == 'url':
+        return build_workspace_payload_for_market_url(
+            query,
+            user_id=user_id,
+            news_limit=news_limit,
+            transcript_limit=transcript_limit,
+        )
+    return build_workspace_payload_for_query(
         query,
         user_id=user_id,
-        mode=mode,
         news_limit=news_limit,
         transcript_limit=transcript_limit,
     )

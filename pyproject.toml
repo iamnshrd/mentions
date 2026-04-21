@@ -15,6 +15,10 @@ mentionsctl = "mentions_core.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+web = [
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+]
 
 [tool.setuptools.packages.find]
 include = ["mentions_core*", "agents*"]
