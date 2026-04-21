@@ -1,4 +1,11 @@
 (function () {
+  const params = new URLSearchParams(window.location.search);
+  const DEFAULT_API_BASE = (
+    params.get('api') ||
+    window.MENTIONLESS_API_BASE ||
+    'http://127.0.0.1:8000'
+  ).replace(/\/$/, '');
+
   const DEFAULT_WORKSPACE_DATA = {
     query: "What will Bernie Sanders say at the More Perfect University Kick Off Call?",
     analysis_card: {
@@ -248,10 +255,10 @@
     return normalized;
   }
 
-  function hydrateWorkspaceGlobals(payload) {
+  function hydrateWorkspaceGlobals(payload, source = 'snapshot') {
     const normalized = normalizeWorkspaceData(payload);
     window.__WORKSPACE_DATA__ = normalized;
-    window.__WORKSPACE_SOURCE__ = payload === DEFAULT_WORKSPACE_DATA ? 'demo' : 'runtime';
+    window.__WORKSPACE_SOURCE__ = source;
     window.QUERY = normalized.query;
     window.ANALYSIS_CARD = normalized.analysis_card;
     window.DIRECT_NEWS = normalized.direct_event_news;
@@ -265,23 +272,61 @@
   }
 
   async function loadWorkspaceData(explicitUrl) {
-    const params = new URLSearchParams(window.location.search);
     const dataUrl = explicitUrl || params.get('data') || './ui/workspace-data.json';
     try {
       const response = await fetch(dataUrl, { cache: 'no-store' });
       if (response.ok) {
         const payload = await response.json();
-        return hydrateWorkspaceGlobals(payload);
+        return hydrateWorkspaceGlobals(payload, 'snapshot');
       }
     } catch (_error) {
       // Fallback to baked demo payload when no exported workspace data exists.
     }
-    return hydrateWorkspaceGlobals(DEFAULT_WORKSPACE_DATA);
+    return hydrateWorkspaceGlobals(DEFAULT_WORKSPACE_DATA, 'demo');
   }
 
+  async function requestWorkspaceData(input) {
+    const payload = ensureObject(input);
+    const requestBody = {
+      user_id: payload.user_id || 'default',
+      news_limit: payload.news_limit || 5,
+      transcript_limit: payload.transcript_limit || 5,
+    };
+    if (payload.market_url) {
+      requestBody.market_url = String(payload.market_url).trim();
+    } else {
+      requestBody.query = String(payload.query || '').trim();
+    }
+
+    const response = await fetch(`${DEFAULT_API_BASE}/api/workspace`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+    });
+
+    let body = {};
+    try {
+      body = await response.json();
+    } catch (_error) {
+      body = {};
+    }
+
+    if (!response.ok || body.ok === false) {
+      const message = ensureObject(body.error).message
+        || `Workspace request failed (${response.status})`;
+      const error = new Error(message);
+      error.code = ensureObject(body.error).code || 'request_failed';
+      throw error;
+    }
+
+    return hydrateWorkspaceGlobals(ensureObject(body.payload), 'live');
+  }
+
+  window.MENTIONLESS_API_BASE = DEFAULT_API_BASE;
   window.DEFAULT_WORKSPACE_DATA = DEFAULT_WORKSPACE_DATA;
   window.hydrateWorkspaceGlobals = hydrateWorkspaceGlobals;
   window.loadWorkspaceData = loadWorkspaceData;
+  window.requestWorkspaceData = requestWorkspaceData;
 
-  hydrateWorkspaceGlobals(DEFAULT_WORKSPACE_DATA);
+  hydrateWorkspaceGlobals(DEFAULT_WORKSPACE_DATA, 'demo');
 })();

@@ -3,6 +3,12 @@ function App() {
   const variant = 'notebook';
   const [selectedSource, setSelectedSource] = React.useState(null);
   const [debugOpen, setDebugOpen] = React.useState(false);
+  const [dataVersion, setDataVersion] = React.useState(0);
+  const [queryInput, setQueryInput] = React.useState(QUERY || '');
+  const [requestState, setRequestState] = React.useState({
+    loading: false,
+    error: '',
+  });
 
   const theme = window.getTheme(variant);
 
@@ -36,6 +42,59 @@ function App() {
     }
   };
 
+  const sourceBadge = (() => {
+    if (requestState.loading) {
+      return {
+        label: 'RUNNING',
+        bg: c.accentBg,
+        text: c.accentText,
+      };
+    }
+    if (window.__WORKSPACE_SOURCE__ === 'live') {
+      return {
+        label: 'LIVE API',
+        bg: c.directBg,
+        text: c.direct,
+      };
+    }
+    if (window.__WORKSPACE_SOURCE__ === 'snapshot') {
+      return {
+        label: 'SNAPSHOT',
+        bg: c.backgroundBg,
+        text: c.textSecondary,
+      };
+    }
+    return {
+      label: 'DEMO',
+      bg: c.backgroundBg,
+      text: c.textSecondary,
+    };
+  })();
+
+  const handleSubmitQuery = async (event) => {
+    event?.preventDefault?.();
+    const value = (queryInput || '').trim();
+    if (!value || requestState.loading) return;
+
+    const isUrl = /^https?:\/\//i.test(value);
+    setRequestState({ loading: true, error: '' });
+    try {
+      await window.requestWorkspaceData(
+        isUrl ? { market_url: value } : { query: value }
+      );
+      setSelectedSource(null);
+      setDebugOpen(false);
+      setQueryInput(window.QUERY || value);
+      setDataVersion((v) => v + 1);
+      setRequestState({ loading: false, error: '' });
+    } catch (error) {
+      setRequestState({
+        loading: false,
+        error: error?.message || 'Workspace request failed.',
+      });
+    }
+  };
+
   return (
     <ThemeContext.Provider value={theme}>
       <VariantContext.Provider value={variant}>
@@ -66,12 +125,12 @@ function App() {
             }}>Research Workspace</span>
             <div style={{
               padding: '4px 10px', borderRadius: theme.radiusPill,
-              background: window.__WORKSPACE_SOURCE__ === 'runtime' ? c.directBg : c.backgroundBg,
+              background: sourceBadge.bg,
               fontSize: '10px', fontFamily: theme.fonts.mono,
-              color: window.__WORKSPACE_SOURCE__ === 'runtime' ? c.direct : c.textSecondary,
+              color: sourceBadge.text,
               fontWeight: 600,
             }}>
-              {window.__WORKSPACE_SOURCE__ === 'runtime' ? 'LIVE DATA' : 'DEMO DATA'}
+              {sourceBadge.label}
             </div>
             <div style={{
               padding: '4px 12px', borderRadius: theme.radiusPill,
@@ -113,7 +172,15 @@ function App() {
               <SourcePanel selectedSource={selectedSource} onSelectSource={handleSelectSource} />
             )}
             {(showThreeCol || activeTab === 'analysis') && (
-              <AnalysisPanel onInspectEvidence={handleInspectEvidence} />
+              <AnalysisPanel
+                key={dataVersion}
+                onInspectEvidence={handleInspectEvidence}
+                queryInput={queryInput}
+                onQueryInputChange={setQueryInput}
+                onSubmitQuery={handleSubmitQuery}
+                loading={requestState.loading}
+                error={requestState.error}
+              />
             )}
             {(showThreeCol || activeTab === 'inspector') && (
               <InspectorPanel selectedSource={selectedSource} />

@@ -1,5 +1,12 @@
 // v3 Analysis Panel — rounded, spacious, NotebookLM-inspired
-function AnalysisPanel({ onInspectEvidence }) {
+function AnalysisPanel({
+  onInspectEvidence,
+  queryInput,
+  onQueryInputChange,
+  onSubmitQuery,
+  loading,
+  error,
+}) {
   const t = useTheme();
   const c = t.colors;
   const variant = useVariant();
@@ -30,10 +37,61 @@ function AnalysisPanel({ onInspectEvidence }) {
           borderBottom: `1px solid ${c.border}`,
         }}>
           <div style={{ ...label(''), marginBottom: '6px', fontSize: '10px' }}>Research Query</div>
-          <div style={{
-            fontFamily: t.fonts.display, fontSize: isCalmer ? '17px' : '15px',
-            fontWeight: 500, color: c.text, lineHeight: 1.45,
-          }}>{QUERY}</div>
+          <form onSubmit={onSubmitQuery}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
+              <input
+                value={queryInput}
+                onChange={(event) => onQueryInputChange && onQueryInputChange(event.target.value)}
+                placeholder="Ask a question or paste a market URL"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  background: c.surfaceAlt,
+                  color: c.text,
+                  border: `1px solid ${error ? c.riskBorder : c.border}`,
+                  borderRadius: t.radiusSm,
+                  padding: isCalmer ? '12px 14px' : '11px 13px',
+                  fontFamily: t.fonts.body,
+                  fontSize: isCalmer ? '14px' : '13px',
+                  outline: 'none',
+                }}
+              />
+              <button type="submit" disabled={loading} style={{
+                padding: '0 16px',
+                minWidth: '108px',
+                border: 'none',
+                borderRadius: t.radiusPill,
+                background: loading ? c.borderStrong : c.accentBg,
+                color: loading ? c.textSecondary : c.accentText,
+                fontFamily: t.fonts.mono,
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: loading ? 'default' : 'pointer',
+              }}>
+                {loading ? 'Running…' : 'Run Analysis'}
+              </button>
+            </div>
+          </form>
+          {error ? (
+            <div style={{
+              marginTop: '10px',
+              padding: '9px 12px',
+              background: c.riskBg,
+              borderRadius: t.radiusSm,
+              color: c.risk,
+              fontFamily: t.fonts.body,
+              fontSize: '12px',
+              lineHeight: 1.5,
+            }}>
+              {error}
+            </div>
+          ) : (
+            <div style={{
+              marginTop: '10px',
+              fontFamily: t.fonts.display, fontSize: isCalmer ? '17px' : '15px',
+              fontWeight: 500, color: c.text, lineHeight: 1.45,
+            }}>{QUERY}</div>
+          )}
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: isCalmer ? '20px 24px' : '16px 20px' }}>

@@ -99,6 +99,13 @@ python -m pip install -e '.[web]'
 python -m mentions_core serve --host 127.0.0.1 --port 8000
 ```
 
+The Pages UI can call that backend directly. Open the site with an explicit API
+base, for example:
+
+```text
+https://iamnshrd.github.io/mentions/?api=http://127.0.0.1:8000
+```
+
 ## Compatibility
 
 - локальный runtime CLI: `python -m mentions_core ...` или `mentionsctl ...`
