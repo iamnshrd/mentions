@@ -9,6 +9,7 @@ function App() {
     loading: false,
     error: '',
   });
+  const autoRunRef = React.useRef(false);
 
   const theme = window.getTheme(variant);
 
@@ -64,6 +65,13 @@ function App() {
         text: c.textSecondary,
       };
     }
+    if (!window.MENTIONLESS_API_BASE) {
+      return {
+        label: 'NO API',
+        bg: c.riskBg,
+        text: c.risk,
+      };
+    }
     return {
       label: 'DEMO',
       bg: c.backgroundBg,
@@ -90,10 +98,41 @@ function App() {
     } catch (error) {
       setRequestState({
         loading: false,
-        error: error?.message || 'Workspace request failed.',
+        error: window.describeWorkspaceError
+          ? window.describeWorkspaceError(error)
+          : (error?.message || 'Workspace request failed.'),
       });
     }
   };
+
+  React.useEffect(() => {
+    if (autoRunRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const marketUrl = (params.get('market_url') || '').trim();
+    const query = (params.get('query') || '').trim();
+    const initialValue = marketUrl || query;
+    if (!initialValue || !window.MENTIONLESS_API_BASE) return;
+    autoRunRef.current = true;
+    setQueryInput(initialValue);
+    const isUrl = /^https?:\/\//i.test(initialValue);
+    setRequestState({ loading: true, error: '' });
+    window.requestWorkspaceData(isUrl ? { market_url: initialValue } : { query: initialValue })
+      .then(() => {
+        setSelectedSource(null);
+        setDebugOpen(false);
+        setQueryInput(window.QUERY || initialValue);
+        setDataVersion((v) => v + 1);
+        setRequestState({ loading: false, error: '' });
+      })
+      .catch((error) => {
+        setRequestState({
+          loading: false,
+          error: window.describeWorkspaceError
+            ? window.describeWorkspaceError(error)
+            : (error?.message || 'Workspace request failed.'),
+        });
+      });
+  }, []);
 
   return (
     <ThemeContext.Provider value={theme}>

@@ -1,10 +1,13 @@
 (function () {
   const params = new URLSearchParams(window.location.search);
+  const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const inferredLocalApiBase = isLocalHost ? 'http://127.0.0.1:8000' : '';
   const DEFAULT_API_BASE = (
     params.get('api') ||
     window.MENTIONLESS_API_BASE ||
-    'http://127.0.0.1:8000'
+    inferredLocalApiBase
   ).replace(/\/$/, '');
+  const API_TIMEOUT_MS = Number(window.MENTIONLESS_API_TIMEOUT_MS || 25000);
 
   const DEFAULT_WORKSPACE_DATA = {
     query: "What will Bernie Sanders say at the More Perfect University Kick Off Call?",
@@ -286,6 +289,12 @@
   }
 
   async function requestWorkspaceData(input) {
+    if (!DEFAULT_API_BASE) {
+      const error = new Error('Live backend is not configured for this site yet.');
+      error.code = 'backend_not_configured';
+      throw error;
+    }
+
     const payload = ensureObject(input);
     const requestBody = {
       user_id: payload.user_id || 'default',
@@ -298,11 +307,30 @@
       requestBody.query = String(payload.query || '').trim();
     }
 
-    const response = await fetch(`${DEFAULT_API_BASE}/api/workspace`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch(`${DEFAULT_API_BASE}/api/workspace`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+    } catch (fetchError) {
+      window.clearTimeout(timeoutId);
+      const code = fetchError && fetchError.name === 'AbortError'
+        ? 'timeout'
+        : 'server_unreachable';
+      const error = new Error(
+        code === 'timeout'
+          ? 'The analysis took too long. Try a narrower question or try again.'
+          : 'Cannot reach the backend API. Check the API URL or server status.'
+      );
+      error.code = code;
+      throw error;
+    }
+    window.clearTimeout(timeoutId);
 
     let body = {};
     try {
@@ -322,11 +350,26 @@
     return hydrateWorkspaceGlobals(ensureObject(body.payload), 'live');
   }
 
+  function describeWorkspaceError(error) {
+    const code = error && error.code;
+    if (code === 'backend_not_configured') {
+      return 'Live backend is not configured for this Pages site yet. Add ?api=https://your-backend to the URL.';
+    }
+    if (code === 'server_unreachable') {
+      return 'Backend API is unreachable. Check that the server is running and CORS/API URL are correct.';
+    }
+    if (code === 'timeout') {
+      return 'The request took too long. Try a tighter question or retry in a moment.';
+    }
+    return (error && error.message) || 'Workspace request failed.';
+  }
+
   window.MENTIONLESS_API_BASE = DEFAULT_API_BASE;
   window.DEFAULT_WORKSPACE_DATA = DEFAULT_WORKSPACE_DATA;
   window.hydrateWorkspaceGlobals = hydrateWorkspaceGlobals;
   window.loadWorkspaceData = loadWorkspaceData;
   window.requestWorkspaceData = requestWorkspaceData;
+  window.describeWorkspaceError = describeWorkspaceError;
 
   hydrateWorkspaceGlobals(DEFAULT_WORKSPACE_DATA, 'demo');
 })();

@@ -106,6 +106,9 @@ base, for example:
 https://iamnshrd.github.io/mentions/?api=http://127.0.0.1:8000
 ```
 
+For a deployed backend, set `docs/ui/config.js` to your public API base or keep
+using the `?api=https://...` override during rollout.
+
 To keep the UI responsive, the workspace endpoint uses a bounded response
 budget. Override it with:
 
